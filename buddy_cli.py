@@ -7,16 +7,10 @@ sys.path.append(os.path.dirname(__file__))
 
 from commands.use import use_feature
 from commands.info import display_info
-from commands.help import provide_help
-from config.config_manager import ConfigManager
-from config.secure_store import SecureStore
 from models.gpt4o import GPT4OModel
 
 
 def main():
-    config_manager = ConfigManager()
-    secure_store = SecureStore()
-    
     if len(sys.argv) < 2:
         print("Usage: buddy <command>")
         sys.exit(1)
