@@ -33,7 +33,7 @@ The process will be as follows:
 
 The user will only be able to see what you say through the tools that you call, so you should only output information for internal monologue."""
 
-    def generate_command(self, query):
+    def execute_unsupervised(self, query):
         """
         Method for performing unsupervised tasks that don't require any user interaction.
         
@@ -46,7 +46,20 @@ The user will only be able to see what you say through the tools that you call, 
         
         raise NotImplementedError("Subclasses should implement this method")
     
-    def generate_help(self, query):
+    def execute_carefully(self, query):
+        """
+        Method for performing supervised tasks that require user confirmation before execution of non-read commands.
+        
+        Args:
+            query (str): The task to be performed
+            
+        Raises:
+            NotImplementedError: Subclasses should implement this method
+        """
+        
+        raise NotImplementedError("Subclasses should implement this method")
+    
+    def execute_educational(self, query):
         """
         Method for walking a user through a task step-by-step while being informative and educational.
         

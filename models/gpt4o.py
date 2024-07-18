@@ -19,7 +19,7 @@ class GPT4OModel(BaseModel):
         self.api_key = secure_store.get_api_key("openai")
         self.client = OpenAI(api_key=self.api_key)
 
-    def generate_command(self, query):
+    def execute_unsupervised(self, query):
         """
         Generates a command based on the provided query
         
@@ -42,7 +42,7 @@ class GPT4OModel(BaseModel):
         command = response.choices[0].message.content.strip()
         return command
 
-    def generate_help(self, query):
+    def execute_educational(self, query):
         """
         Handles the educational help flow for a given task
         
