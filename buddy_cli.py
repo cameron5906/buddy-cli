@@ -1,4 +1,10 @@
+#!/usr/bin/env python3
 import sys
+import os
+
+# Add the current directory to the Python path to ensure modules can be found
+sys.path.append(os.path.dirname(__file__))
+
 from commands.use import use_feature
 from commands.help import display_help
 from commands.carefully import execute_with_confirmation
