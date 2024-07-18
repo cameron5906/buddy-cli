@@ -1,5 +1,15 @@
-# Use an official Python runtime as a parent image
-FROM python:3.9-slim
+# Use an official Ubuntu runtime as a parent image
+FROM ubuntu:20.04
+
+# Set environment variables to non-interactive mode to avoid prompts during installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Python and other dependencies
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip python3-venv && \
+    apt-get install -y curl wget git && \
+    apt-get install -y build-essential && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set the working directory in the container
 WORKDIR /app
@@ -8,7 +18,7 @@ WORKDIR /app
 COPY requirements.txt requirements.txt
 
 # Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 COPY . /app
 
@@ -22,4 +32,4 @@ RUN mv buddy_cli.py /usr/local/bin/buddy
 ENV PYTHONPATH=/app
 
 # Set the default command to buddy
-CMD ["buddy"]
+CMD ["/bin/bash"]
