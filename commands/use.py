@@ -1,6 +1,7 @@
 from config.config_manager import ConfigManager
 from config.secure_store import SecureStore
 
+
 def use_feature(args):
     config_manager = ConfigManager()
     secure_store = SecureStore()
@@ -16,7 +17,7 @@ def use_feature(args):
         if not value:
             print("Usage: buddy use gpt4o <apiKey>")
             return
-        secure_store.set_api_key("gpt4o", value)
+        secure_store.set_api_key("openai", value)
         config_manager.set_current_model("gpt4o")
     elif feature == "chrome":
         config_manager.add_feature("chrome")
