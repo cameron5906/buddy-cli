@@ -7,7 +7,9 @@ sys.path.append(os.path.dirname(__file__))
 
 from commands.use import use_feature
 from commands.info import display_info
-from models.gpt4o import GPT4OModel
+from models.model_factory import ModelFactory
+
+model_factory = ModelFactory()
 
 
 def main():
@@ -15,29 +17,32 @@ def main():
         print("Usage: buddy <command>")
         sys.exit(1)
 
+    model = model_factory.get_model()
     command = sys.argv[1]
 
     if command == "info":
         display_info()
+    
     elif command == "help":
         if len(sys.argv) < 3:
             print("Usage: buddy help <task>")
             sys.exit(1)
             
-        model = GPT4OModel()    
         query = " ".join(sys.argv[2:])
         model.execute_educational(query)
+    
     elif command == "carefully":
         if len(sys.argv) < 3:
             print("Usage: buddy carefully <task>")
             sys.exit(1)
-        model = GPT4OModel()    
+            
         query = " ".join(sys.argv[2:])
         model.execute_carefully(query)
+    
     elif command == "use":
         use_feature(sys.argv[2:])
+    
     else:
-        model = GPT4OModel()
         query = " ".join(sys.argv[1:])
         model.execute_unsupervised(query)    
 
