@@ -1,4 +1,12 @@
 class BaseModel:
+    """
+    The base class for all models in the system, defining the interface that all models must implement.
+    
+    Attributes:
+        unsupervised_flow_instructions (str): System prompt for the unsupervised flow
+        help_flow_instructions (str): System prompt for the educational help flow
+    """
+    
     unsupervised_flow_instructions = "You will create shell commands for user requests that will be correctly formatted to be run directly in a system shell. You will not write any other commentary, suggestions, or notes - only the command to run"
     
     help_flow_instructions = """You will walk the user through a step-by-step process of accomplishing a task through the system shell. Commands you execute should be non-interactive and should not require user input.
@@ -26,7 +34,27 @@ The process will be as follows:
 The user will only be able to see what you say through the tools that you call, so you should only output information for internal monologue."""
 
     def generate_command(self, query):
+        """
+        Method for performing unsupervised tasks that don't require any user interaction.
+        
+        Args:
+            query (str): The task to be performed
+            
+        Raises:
+            NotImplementedError: Subclasses should implement this method
+        """
+        
         raise NotImplementedError("Subclasses should implement this method")
     
     def generate_help(self, query):
+        """
+        Method for walking a user through a task step-by-step while being informative and educational.
+        
+        Args:
+            query (str): The task for which help is required
+            
+        Raises:
+            NotImplementedError: Subclasses should implement this method
+        """
+        
         raise NotImplementedError("Subclasses should implement this method")
