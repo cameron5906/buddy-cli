@@ -3,6 +3,13 @@ from config.secure_store import SecureStore
 
 
 def use_feature(args):
+    """
+    Configures Buddy to use a specific model or feature.
+    
+    Args:
+        args (list): List of arguments passed to the command
+    """
+    
     config_manager = ConfigManager()
     secure_store = SecureStore()
 

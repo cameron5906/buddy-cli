@@ -1,4 +1,8 @@
 def display_info():
+    """
+    Displays information about the Buddy CLI.
+    """
+    
     info_text = """
     Buddy CLI - Command Line Utility for Generative AI
 

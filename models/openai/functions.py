@@ -6,6 +6,19 @@ from utils.user_input import is_approval, is_denial
 
 
 def make_tool_definition(name, description, parameterDict=None, required=None):
+    """
+    Creates an OpenAI ChatML tool definition object based on provided metadata.
+    
+    Args:
+        name (str): The name of the tool
+        description (str): A description of the tool
+        parameterDict (dict): A dictionary of parameters for the tool (key: parameter name, value: parameter type)
+        required (list): A list of required parameters
+        
+    Returns:
+        dict: The tool definition object
+    """
+    
     if parameterDict is None:
         parameterDict = {"type": "object", "properties": {}}
     if required is None:

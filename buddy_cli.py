@@ -13,9 +13,11 @@ from config.config_manager import ConfigManager
 from config.secure_store import SecureStore
 from models.gpt4o import GPT4OModel
 
+
 def generate_command(query):
     model = GPT4OModel()
     return model.generate_command(query)
+
 
 def main():
     config_manager = ConfigManager()
@@ -47,6 +49,7 @@ def main():
     else:
         print(f"Unknown command: {command}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
