@@ -4,11 +4,11 @@ from commands.help import display_help
 from commands.carefully import execute_with_confirmation
 from config.config_manager import ConfigManager
 from config.secure_store import SecureStore
+from models.gpt4o import GPT4OModel
 
 def generate_command(query):
-    # Placeholder for generating shell commands using the AI model
-    # For now, let's just return a dummy command
-    return "echo 'Hello, World!'"
+    model = GPT4OModel()
+    return model.generate_command(query)
 
 def main():
     config_manager = ConfigManager()
