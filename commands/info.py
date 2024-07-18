@@ -1,12 +1,13 @@
-def display_help():
-    help_text = """
+def display_info():
+    info_text = """
     Buddy CLI - Command Line Utility for Generative AI
 
     Usage:
         buddy <command> [options]
 
     Commands:
-        help          Display this help information.
+        info          Display this information
+        help          Work through a task collaboratively
         carefully     Execute commands with confirmation.
         use <feature> [value]  Configure Buddy to use a specific model or feature.
 
@@ -18,4 +19,4 @@ def display_help():
         buddy use gpt4o YOUR_API_KEY
         buddy use chrome
     """
-    print(help_text)
+    print(info_text)

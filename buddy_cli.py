@@ -6,7 +6,7 @@ import os
 sys.path.append(os.path.dirname(__file__))
 
 from commands.use import use_feature
-from commands.help import display_help
+from commands.info import display_info
 from commands.carefully import execute_with_confirmation
 from config.config_manager import ConfigManager
 from config.secure_store import SecureStore
@@ -26,8 +26,8 @@ def main():
 
     command = sys.argv[1]
 
-    if command == "help":
-        display_help()
+    if command == "info":
+        display_info()
     elif command == "carefully":
         if len(sys.argv) < 3:
             print("Usage: buddy carefully <query>")
