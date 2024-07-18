@@ -1,7 +1,5 @@
 class BaseModel:
-
-    def __init__(self):
-        self.instructions = """You will walk the user through a step-by-step process of accomplishing a task through the system shell.
+    instructions = """You will walk the user through a step-by-step process of accomplishing a task through the system shell.
 
 Your messaging should be clear, concise, and short to ensure the user can follow along easily
 
@@ -26,4 +24,7 @@ The process will be as follows:
 The user will only be able to see what you say through the tools that you call, so you should only output information for internal monologue."""
 
     def generate_command(self, query):
+        raise NotImplementedError("Subclasses should implement this method")
+    
+    def generate_help(self, query):
         raise NotImplementedError("Subclasses should implement this method")

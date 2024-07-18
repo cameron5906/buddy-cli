@@ -1,27 +1,37 @@
 import subprocess
-import sys
 from rich.console import Console
+from rich.markdown import Markdown
 from rich.text import Text
+from rich.panel import Panel
 
 console = Console()
 
 
+def format_markdown_for_terminal(markdown_text):
+    md = Markdown(markdown_text)
+    console.print(Panel(md, expand=True, border_style="bold blue"))
+
+
 def run_command(command):
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
     full_stdout = []
     full_stderr = []
 
-    while True:
-        output = process.stdout.readline()
-        error = process.stderr.readline()
-        if output == '' and error == '' and process.poll() is not None:
-            break
-        if output:
-            print_fancy(output.strip(), italic=True, color="light_gray")
-            full_stdout.append(output)
-        if error:
-            print_fancy(error.strip(), italic=True, color="red")
-            full_stderr.append(error)
+    stdout_iter = iter(process.stdout.readline, '')
+    stderr_iter = iter(process.stderr.readline, '')
+
+    for stdout_line in stdout_iter:
+        print_fancy(stdout_line.strip(), italic=True, color="light_gray")
+        full_stdout.append(stdout_line)
+    
+    for stderr_line in stderr_iter:
+        print_fancy(stderr_line.strip(), italic=True, color="red")
+        full_stderr.append(stderr_line)
+
+    process.stdout.close()
+    process.stderr.close()
+    process.wait()
 
     return ''.join(full_stdout), ''.join(full_stderr)
 
