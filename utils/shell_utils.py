@@ -1,8 +1,14 @@
+import os
+import socket
 import subprocess
+from datetime import datetime
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.text import Text
 from rich.panel import Panel
+import requests
+import platform
+import getpass
 
 console = Console()
 
@@ -51,3 +57,40 @@ def print_fancy(text, bold=False, italic=False, underline=False, color=None, bg=
         text_obj.stylize(f"on {bg}")
 
     console.print(text_obj)
+
+
+def get_system_context():
+    # Operating system
+    os_name = platform.system()
+    os_version = platform.version()
+    os_details = platform.uname()
+
+    # Local network IP
+    local_ip = socket.gethostbyname(socket.gethostname())
+
+    # External IP
+    try:
+        external_ip = requests.get('https://api.ipify.org').text
+    except requests.RequestException:
+        external_ip = 'Unavailable'
+
+    # Username
+    username = getpass.getuser()
+
+    # Current working directory
+    cwd = os.getcwd()
+
+    # Current date and time
+    current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    context = (
+        f"**Operating System:** {os_name} {os_version}\n"
+        f"**OS Details:** {os_details}\n"
+        f"**Local Network IP:** {local_ip}\n"
+        f"**External IP:** {external_ip}\n"
+        f"**Username:** {username}\n"
+        f"**Current Working Directory:** {cwd}\n"
+        f"**Current Date and Time:** {current_datetime}"
+    )
+
+    return context
