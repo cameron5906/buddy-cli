@@ -1,4 +1,5 @@
 import sys
+from commands.use import use_feature
 from config.config_manager import ConfigManager
 from config.secure_store import SecureStore
 
@@ -24,12 +25,7 @@ def main():
             sys.exit(1)
         feature = sys.argv[2]
         value = sys.argv[3]
-        if feature == "gpt4o":
-            secure_store.set_api_key("gpt4o", value)
-            config_manager.set_current_model("gpt4o")
-        elif feature == "chrome":
-            config_manager.add_feature("chrome")
-        print(f"Configured {feature} with value {value}")
+        use_feature(feature, value)
     else:
         print(f"Unknown command: {command}")
         sys.exit(1)
