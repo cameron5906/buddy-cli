@@ -17,7 +17,7 @@ class GPT4OModel(BaseModel):
         messages=[
             {
                 "role": "system",
-                "content": "You will create shell commands for user requests that will be correctly formatted to be run directly in a system shell. You will not write any other commentary, suggestions, or notes - only the command to run"
+                "content": BaseModel.unsupervised_flow_instructions
             },
             {
                 "role": "user",
@@ -32,7 +32,7 @@ class GPT4OModel(BaseModel):
         messages = [
             {
                 "role": "system",
-                "content": BaseModel.instructions
+                "content": BaseModel.help_flow_instructions
             },
             {
                 "role": "user",

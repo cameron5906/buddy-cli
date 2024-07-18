@@ -1,5 +1,7 @@
 class BaseModel:
-    instructions = """You will walk the user through a step-by-step process of accomplishing a task through the system shell.
+    unsupervised_flow_instructions = "You will create shell commands for user requests that will be correctly formatted to be run directly in a system shell. You will not write any other commentary, suggestions, or notes - only the command to run"
+    
+    help_flow_instructions = """You will walk the user through a step-by-step process of accomplishing a task through the system shell.
 
 Your messaging should be clear, concise, and short to ensure the user can follow along easily
 
