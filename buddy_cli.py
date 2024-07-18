@@ -17,13 +17,22 @@ def main():
         print("Usage: buddy <command>")
         sys.exit(1)
 
-    model = model_factory.get_model()
     command = sys.argv[1]
 
+    # Check for non-intelligent commands
     if command == "info":
         display_info()
+        sys.exit(0)
+        
+    elif command == "use":
+        use_feature(sys.argv[2:])
+        sys.exit(0)
     
-    elif command == "help":
+    # Load the configured model
+    
+    model = model_factory.get_model()
+    
+    if command == "help":
         if len(sys.argv) < 3:
             print("Usage: buddy help <task>")
             sys.exit(1)
@@ -38,9 +47,6 @@ def main():
             
         query = " ".join(sys.argv[2:])
         model.execute_carefully(query)
-    
-    elif command == "use":
-        use_feature(sys.argv[2:])
     
     else:
         query = " ".join(sys.argv[1:])
