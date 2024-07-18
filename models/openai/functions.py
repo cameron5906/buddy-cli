@@ -142,6 +142,9 @@ def process_chat_response(response):
                 if not tool_args['success']:
                     is_failure = True
                     
+                if tool_args['summary']:
+                    format_markdown_for_terminal(tool_args['summary'])
+                    
                 returned_messages.append({
                     "role": "tool",
                     "tool_call_id": tool_call.id,
