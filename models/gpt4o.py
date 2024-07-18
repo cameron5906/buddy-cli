@@ -9,7 +9,7 @@ class GPT4OModel(BaseModel):
 
     def __init__(self):
         secure_store = SecureStore()
-        self.api_key = secure_store.get_api_key("gpt4o")
+        self.api_key = secure_store.get_api_key("openai")
         self.client = OpenAI(api_key=self.api_key)
 
     def generate_command(self, query):
@@ -85,7 +85,6 @@ class GPT4OModel(BaseModel):
                     ["success"]
                 )
             ],
-            max_tokens=4000,
             tool_choice="auto",
             temperature=0.1,
             parallel_tool_calls=False)

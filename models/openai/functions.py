@@ -1,4 +1,6 @@
+from openai import OpenAI
 import json
+from config.secure_store import SecureStore
 from utils.shell_utils import format_markdown_for_terminal, print_fancy, run_command
 from utils.user_input import is_approval, is_denial
 
@@ -112,11 +114,14 @@ def process_chat_response(response):
             elif tool_name == "execute_command":
                 stdout, stderr = run_command(tool_args['command'])
                 
+                summarized_out = summarize(stdout)
+                summarized_err = summarize(stderr)
+                
                 returned_messages.append({
                     "role": "tool",
                     "tool_call_id": tool_call.id,
                     "name": "execute_command",
-                    "content": f"stdout: {stdout}, stderr: {stderr}"
+                    "content": f"Execution complete\n\n### Stdout Summary\n{summarized_out}\n\n### Stderr Summary\n{summarized_err}"
                 })
                     
             elif tool_name == "end_process":
@@ -138,3 +143,27 @@ def process_chat_response(response):
         })
             
     return is_finished, is_failure, returned_messages
+
+
+def summarize(content):
+    secure_store = SecureStore()
+    api_key = secure_store.get_api_key("openai")
+    client = OpenAI(api_key=api_key)
+    
+    messages = [
+        {
+            "role": "system",
+            "content": "You will condense the user's message into a concise, informative summary that captures meaningful details and context. You will attempt to keep the summary as short as possible while maintaining the necessary information it conveys"
+        },
+        {
+            "role": "user",
+            "content": content
+        }
+    ]
+    
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=messages,
+        temperature=0.0)
+    
+    return response.choices[0].message.content.strip()
