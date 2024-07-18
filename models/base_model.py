@@ -1,10 +1,11 @@
 class BaseModel:
     unsupervised_flow_instructions = "You will create shell commands for user requests that will be correctly formatted to be run directly in a system shell. You will not write any other commentary, suggestions, or notes - only the command to run"
     
-    help_flow_instructions = """You will walk the user through a step-by-step process of accomplishing a task through the system shell.
+    help_flow_instructions = """You will walk the user through a step-by-step process of accomplishing a task through the system shell. Commands you execute should be non-interactive and should not require user input.
 
 The process will be as follows:
 1. Create a high-level plan that will be followed to accomplish the task from the shell
+- Your plan should include testing and validation if applicable
 1.1 Review the plan with the user
 1.1.1 If the user approves, continue to the first step
 1.1.2 If the user has questions, answer them and wait for approval to continue
