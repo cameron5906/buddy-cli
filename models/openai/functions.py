@@ -47,7 +47,7 @@ def process_chat_response(response):
             if tool_name == "provide_plan":
                 format_markdown_for_terminal(tool_args['plan'])
                 
-                print_fancy("Plan approved? (y/n)", bold=True, color="blue")
+                print_fancy("Does this plan look right? (y/n)", bold=True, color="blue")
                 
                 user_response = input("> ")
                 
@@ -66,7 +66,7 @@ def process_chat_response(response):
                 })
                 
             elif tool_name == "provide_explanation":
-                format_markdown_for_terminal(tool_args['explanation'])
+                format_markdown_for_terminal(f"### {tool_args['title']}\n{tool_args['explanation']}")
                 returned_messages.append({
                     "role": "tool",
                     "tool_call_id": tool_call.id,
@@ -74,10 +74,24 @@ def process_chat_response(response):
                     "content": "Success"
                 })
                 
+            elif tool_name == "provide_resolution":
+                format_markdown_for_terminal(tool_args['resolution'])
+                
+                if not tool_args['recoverable']:
+                    is_failure = True
+                    is_finished = True
+                    
+                returned_messages.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "name": "provide_resolution",
+                    "content": "Success"
+                })
+                
             elif tool_name == "provide_command":
                 
                 print_fancy(f"Proposed command: {tool_args['command']}", bold=True, bg="yellow", color="black")
-                print_fancy("Command approved? (y/n)", italic=True, color="blue")
+                print_fancy("Do you approve? (y/n)", italic=True, color="blue")
                 
                 user_response = input("> ")
                 
@@ -109,6 +123,13 @@ def process_chat_response(response):
                 is_finished = True
                 if not tool_args['success']:
                     is_failure = True
+                    
+                returned_messages.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "name": "end_process",
+                    "content": "Success"
+                })
                 
     if len(returned_messages) == 0:
         returned_messages.append({

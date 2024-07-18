@@ -2,7 +2,7 @@ from openai import OpenAI
 from models.base_model import BaseModel
 from models.openai.functions import make_tool_definition, process_chat_response
 from config.secure_store import SecureStore
-from utils.shell_utils import print_fancy
+from utils.shell_utils import print_fancy, get_system_context
 
 
 class GPT4OModel(BaseModel):
@@ -36,6 +36,10 @@ class GPT4OModel(BaseModel):
             },
             {
                 "role": "user",
+                "content": f"My system information is:\n{get_system_context()}"  
+            },
+            {
+                "role": "user",
                 "content": query
             }
         ]
@@ -46,15 +50,21 @@ class GPT4OModel(BaseModel):
             tools=[
                 make_tool_definition(
                     "provide_plan",
-                    "Provides a plan to the user for accomplishing the task",
+                    "Provides a plan to the user for accomplishing the task. This will be a numbered list with titles of each step and no other information",
                     {"plan": "string"},
                     ["plan"]
                 ),
                 make_tool_definition(
                     "provide_explanation",
-                    "Provides an explanation for a step to the user in an informative manner",
-                    {"explanation": "string"},
+                    "Provides an explanation for a step to the user in an informative manner. Commands should be explained in a way that can be educational for the user. The title should be the step number or name",
+                    {"title": "string", "explanation": "string"},
                     ["explanation"]
+                ),
+                make_tool_definition(
+                    "provide_resolution",
+                    "Used to provide the resolution you will attempt after handling an unexpected output from a step. If the issue is not recoverable, the process will end",
+                    {"resolution": "string", "recoverable": "boolean"},
+                    ["resolution"]
                 ),
                 make_tool_definition(
                     "provide_command",
