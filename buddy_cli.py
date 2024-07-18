@@ -1,5 +1,6 @@
 import sys
 from commands.use import use_feature
+from commands.help import display_help
 from config.config_manager import ConfigManager
 from config.secure_store import SecureStore
 
@@ -14,8 +15,7 @@ def main():
     command = sys.argv[1]
 
     if command == "help":
-        print("Display help information.")
-        # Future: Route to help command
+        display_help()
     elif command == "carefully":
         print("Execute commands with confirmation.")
         # Future: Route to carefully command
