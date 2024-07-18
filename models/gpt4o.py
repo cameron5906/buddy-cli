@@ -27,20 +27,53 @@ class GPT4OModel(BaseModel):
             query (str): The task to be performed
         """
         
-        response = self.client.chat.completions.create(model="gpt-4o",
-        messages=[
+        messages = [
             {
                 "role": "system",
                 "content": BaseModel.unsupervised_flow_instructions
             },
             {
                 "role": "user",
+                "content": f"My system information is:\n{get_system_context()}"  
+            },
+            {
+                "role": "user",
                 "content": query
             }
-        ],
-        max_tokens=100)
-        command = response.choices[0].message.content.strip()
-        return command
+        ]
+    
+        while True:
+            response = self.client.chat.completions.create(model="gpt-4o",
+            messages=messages,
+            tools=[
+                make_tool_definition(
+                    "execute_command",
+                    "Executed a command in the shell",
+                    {"command": "string"},
+                    ["command"]
+                ),
+                make_tool_definition(
+                    "end_process",
+                    "Ends the task, returning control of the terminal to the user",
+                    {"success": "boolean", "summary": "string"},
+                    ["success", "summary"]
+                )
+            ],
+            tool_choice="auto",
+            temperature=0.1,
+            parallel_tool_calls=False)
+            
+            is_finished, is_failure, returned_messages = process_chat_response(response)
+            
+            if is_finished:
+                if is_failure:
+                    print_fancy("Task failed", bold=True, underline=True, color="red")
+                
+                break
+            
+            messages = messages + returned_messages
+            
+        print_fancy("Task completed", bold=True, underline=True, color="green")
     
     def execute_carefully(self, query):
         """
