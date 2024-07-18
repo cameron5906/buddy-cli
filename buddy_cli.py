@@ -1,8 +1,14 @@
 import sys
 from commands.use import use_feature
 from commands.help import display_help
+from commands.carefully import execute_with_confirmation
 from config.config_manager import ConfigManager
 from config.secure_store import SecureStore
+
+def generate_command(query):
+    # Placeholder for generating shell commands using the AI model
+    # For now, let's just return a dummy command
+    return "echo 'Hello, World!'"
 
 def main():
     config_manager = ConfigManager()
@@ -17,8 +23,12 @@ def main():
     if command == "help":
         display_help()
     elif command == "carefully":
-        print("Execute commands with confirmation.")
-        # Future: Route to carefully command
+        if len(sys.argv) < 3:
+            print("Usage: buddy carefully <query>")
+            sys.exit(1)
+        query = " ".join(sys.argv[2:])
+        shell_command = generate_command(query)
+        execute_with_confirmation(shell_command)
     elif command == "use":
         use_feature(sys.argv[2:])
     else:
