@@ -2,7 +2,7 @@ import os
 import json
 from openai import OpenAI
 from models.base_model import BaseModel
-from utils.shell_utils import run_command
+from utils.shell_utils import run_command, print_fancy
 from config.secure_store import SecureStore
 from rich.console import Console
 from rich.markdown import Markdown
@@ -111,13 +111,13 @@ The user will only be able to see what you say through the tools that you call, 
             
             if is_finished:
                 if is_failure:
-                    return "Task failed"
+                    print_fancy("Task failed", bold=True, underline=True, color="red")
                 
                 break
             
             messages = messages + returned_messages
             
-        return "Task completed"
+        print_fancy("Task completed", bold=True, underline=True, color="green")
             
     def __process_response(self, response):
         choice = response.choices[0]
@@ -134,7 +134,7 @@ The user will only be able to see what you say through the tools that you call, 
                 if tool_name == "provide_plan":
                     self.format_markdown_for_terminal(tool_args['plan'])
                     
-                    print("Plan approved? (y/n)")
+                    print_fancy("Plan approved? (y/n)", bold=True, color="blue")
                     
                     user_response = input("> ")
                     
@@ -162,9 +162,9 @@ The user will only be able to see what you say through the tools that you call, 
                     })
                     
                 elif tool_name == "provide_command":
-                    self.console.print(f"Command: {tool_args['command']}")
                     
-                    print("Command approved? (y/n)")
+                    print_fancy(f"Proposed command: {tool_args['command']}", bold=True, bg="yellow", color="black")
+                    print_fancy("Command approved? (y/n)", italic=True, color="blue")
                     
                     user_response = input("> ")
                     
