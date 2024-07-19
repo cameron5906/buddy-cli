@@ -131,6 +131,7 @@ buddy what time is it?
 - `buddy explain <command>` - Get detailed and informative documentation on any command(s) before you run them through your shell 
 - `buddy help <request>` - Let Buddy develop a plan for a task and walk you through it step-by-step, providing educational context along the way. If issues are encountered, Buddy will help you through it and make sure you know what's going on. It will even help you test & validate changes afterwards.
 - `buddy use <feature> [...arguments]` - Enable Buddy to use a specific model or extra feature when working on tasks
+- `buddy remove <feature>` - Removes Buddy's ability to use a feature, also removing its configuration
 
 
 
