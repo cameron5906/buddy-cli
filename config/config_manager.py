@@ -1,3 +1,5 @@
+import initialize_modules
+from models import MODELS
 import os
 import json
 from utils.shell_utils import print_fancy
@@ -27,7 +29,13 @@ class ConfigManager:
             with open(CONFIG_FILE, 'r') as f:
                 self.config = json.load(f)
         else:
-            self.config = {"current_model": "gpt4o", "features": []}
+            if len(MODELS) == 0:
+                print_fancy("No models found. Please install models to use Buddy.", color="red")
+                exit(1)
+
+            first_model = list(MODELS.keys())[0]
+            
+            self.config = {"current_model": first_model, "features": []}
             self.save_config()
 
     def save_config(self):
@@ -49,6 +57,8 @@ class ConfigManager:
         
         self.config["current_model"] = model_name
         self.save_config()
+        
+        print_fancy(f"Set current model to: {model_name}", color="green")
 
     def add_feature(self, feature):
         """
