@@ -42,7 +42,7 @@ Commands:
     remove      <model/ability> <name>              Remove a model or ability from Buddy
 
 Models:
-    gpt-4o       <apiKey>                            Configure Buddy to use OpenAI GPT-4 and save the specified API key
+    gpt-4o       <apiKey>                           Configure Buddy to use OpenAI GPT-4 and save the specified API key
 
 Abilities:
 
