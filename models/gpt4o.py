@@ -48,7 +48,7 @@ class GPT4OModel(BaseModel):
             tools=[
                 make_tool_definition(
                     "execute_command",
-                    "Executed a command in the shell",
+                    "Execute a command in the shell",
                     {"command": "string"},
                     ["command"]
                 ),
@@ -83,7 +83,53 @@ class GPT4OModel(BaseModel):
             query (str): The task to be performed
         """
         
-        raise NotImplementedError("Not yet implemented")
+        messages = [
+            {
+                "role": "system",
+                "content": BaseModel.careful_flow_instructions
+            },
+            {
+                "role": "user",
+                "content": f"My system information is:\n{get_system_context()}"  
+            },
+            {
+                "role": "user",
+                "content": query
+            }
+        ]
+    
+        while True:
+            response = self.client.chat.completions.create(model="gpt-4o",
+            messages=messages,
+            tools=[
+                make_tool_definition(
+                    "execute_command",
+                    "Execute a command in the shell",
+                    {"command": "string", "dangerous": "boolean"},
+                    ["command", "dangerous"]
+                ),
+                make_tool_definition(
+                    "end_process",
+                    "Ends the task, returning control of the terminal to the user",
+                    {"success": "boolean", "summary": "string"},
+                    ["success", "summary"]
+                )
+            ],
+            tool_choice="auto",
+            temperature=0.1,
+            parallel_tool_calls=False)
+            
+            is_finished, is_failure, returned_messages = process_chat_response(response, require_mutation_approval=True)
+            
+            if is_finished:
+                if is_failure:
+                    print_fancy("Task failed", bold=True, underline=True, color="red")
+                
+                break
+            
+            messages = messages + returned_messages
+            
+        print_fancy("Task completed", bold=True, underline=True, color="green")
 
     def execute_educational(self, query):
         """
@@ -140,7 +186,7 @@ class GPT4OModel(BaseModel):
                 ),
                 make_tool_definition(
                     "execute_command",
-                    "Executed the provided command once approved by the user",
+                    "Execute the provided command once approved by the user",
                     {"command": "string"},
                     ["command"]
                 ),
