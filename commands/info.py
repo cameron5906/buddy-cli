@@ -39,12 +39,13 @@ Commands:
     carefully   <task>                              Execute commands with confirmation on non-read operations
     explain     <command>                           Provide an educational explanation of a command
     use         <model/ability> <name> [arguments]  Configure Buddy to use a specific model or ability
+    remove      <model/ability> <name>              Remove a model or ability from Buddy
 
 Models:
     gpt-4o       <apiKey>                            Configure Buddy to use OpenAI GPT-4 and save the specified API key
 
 Abilities:
-    
+
 
 Examples:
     buddy what's my local IP address

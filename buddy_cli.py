@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(__file__))
 
 import initialize_modules
 from commands.use import use
-from commands.remove import remove_ability
+from commands.remove import remove
 from commands.info import display_info
 from model_factory import ModelFactory
 
@@ -17,6 +17,7 @@ model_factory = ModelFactory()
 def main():
     if len(sys.argv) < 2:
         print("Usage: buddy <command>")
+        print("Type 'buddy info' for more information")
         sys.exit(1)
 
     command = sys.argv[1]
@@ -31,13 +32,7 @@ def main():
         sys.exit(0)
         
     elif command == "remove":
-        if len(sys.argv) < 3:
-            print("Usage: buddy remove <feature>")
-            sys.exit(1)
-        
-        feature_name = sys.argv[2]
-        
-        remove_ability(feature_name)
+        remove(sys.argv[2:])
         sys.exit(0)
     
     # Load the configured model
