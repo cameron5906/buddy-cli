@@ -1,39 +1,39 @@
 import sys
 import initialize_modules
-from features import FEATURES, get_feature
+from abilities import ABILITIES, get_ability
 from models import MODELS
 from config.config_manager import ConfigManager
 from config.secure_store import SecureStore
 from utils.shell_utils import print_fancy
 
 
-def remove_feature(feature_name):
+def remove_ability(ability_name):
     """
-    Removes a feature and its corresponding configuration from Buddy.
+    Removes an ability and its corresponding configuration from Buddy.
     
     Args:
-        feature_name (str): The name of the feature to remove
+        ability_name (str): The name of the ability to remove
     """
     
     config_manager = ConfigManager()
     secure_store = SecureStore()
-    found_model = MODELS.get(feature_name)
+    found_model = MODELS.get(ability_name)
 
     if found_model:
-        secure_store.remove_api_key(feature_name)
-        config_manager.remove_feature(feature_name)
+        secure_store.remove_api_key(ability_name)
+        config_manager.remove_ability(ability_name)
         print_fancy(f"Removed {found_model['name']} model configuration", color="green")
         sys.exit(0)
 
-    if feature_name not in FEATURES:
-        print_fancy(f"Unknown feature: {feature_name}", color="red")
+    if ability_name not in ABILITIES:
+        print_fancy(f"Unknown ability '{ability_name}'", color="red")
         sys.exit(1)
 
-    feature = get_feature(feature_name)
+    ability = get_ability(ability_name)
     
-    if feature is None:
-        print_fancy(f"Feature {feature_name} is not implemented", color="red")
+    if ability is None:
+        print_fancy(f"Ability '{ability_name}' is not implemented", color="red")
         sys.exit(1)
 
-    feature.disable()
-    config_manager.remove_feature(feature_name)
+    ability.disable()
+    config_manager.remove_ability(ability_name)

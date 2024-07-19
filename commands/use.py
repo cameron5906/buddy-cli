@@ -1,6 +1,6 @@
 import sys
 import initialize_modules
-from features import FEATURES, get_feature
+from abilities import ABILITIES, get_ability
 from models import MODELS
 from config.config_manager import ConfigManager
 from config.secure_store import SecureStore
@@ -9,7 +9,7 @@ from utils.shell_utils import print_fancy
 
 def use(args):
     """
-    Entry point for the 'use' command. Configures Buddy to use a specific model or feature.
+    Entry point for the 'use' command. Configures Buddy to use a specific model or ability.
     
     Args:
         args (list): List of arguments passed to the command
@@ -27,18 +27,18 @@ def use(args):
             
         print_fancy("Usage: buddy use model <model> <api key>", color="red")
         sys.exit(1)
-    elif resource_type == "feature":
+    elif resource_type == "ability":
         if len(args) > 1:
-            use_feature(args[0], args[1:])
+            use_ability(args[0], args[1:])
             sys.exit(0)
         elif len(args) == 1:
-            use_feature(args[0])
+            use_ability(args[0])
             sys.exit(0)
             
-        print_fancy("Usage: buddy use feature <feature> [options]", color="red")
+        print_fancy("Usage: buddy use ability <name> [options]", color="red")
         sys.exit(1)
     else:
-        print("Usage: buddy use <model/feature> [options]")
+        print("Usage: buddy use <model/ability> [options]")
         sys.exit(1)
 
     
@@ -74,27 +74,27 @@ def use_model(model_name, api_key=None):
     print_fancy(f"Using newly configured model {model_name}", color="green")
 
 
-def use_feature(feature_name, args=None):
+def use_ability(ability_name, args=None):
     """
-    Enables a feature for Buddy to use.
+    Enables an ability for Buddy to use.
     
     Args:
-        feature_name (str): The name of the feature to use
-        args (list): List of arguments to pass to the feature
+        ability_name (str): The name of the ability to enable
+        args (list): List of arguments to pass to the ability for configuration
     """
     
     if len(args) < 1:
-        print("Usage: buddy use <feature> [options]")
+        print("Usage: buddy use <ability> [options]")
         return
     
-    if feature_name not in FEATURES:
-        print_fancy(f"Unknown feature '{feature_name}'", color="red")
+    if ability_name not in ABILITIES:
+        print_fancy(f"Unknown ability '{ability_name}'", color="red")
         sys.exit(1)
     
     config_manager = ConfigManager()
 
-    # Initialize the feature and run the enablement process
-    inst = get_feature(feature_name)
+    # Initialize the ability and run the enablement process
+    inst = get_ability(ability_name)
     inst.enable(args)
     
-    config_manager.add_feature(feature_name)
+    config_manager.add_ability(ability_name)

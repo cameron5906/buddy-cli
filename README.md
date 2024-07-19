@@ -24,9 +24,9 @@ By asking Buddy for help with a task, it will create a plan and walk you through
 
 We've all read through guides and followed tutorials online where the author gives you commands to run in your shell but without the context explaining what exactly it does, or why it does it. Buddy can give you in-depth explanations of commands or command chains before you run them yourself so you can be sure you know what it's about to do - or at least learn about why it works the way it does.
 
-### Optional Features 🎫
+### Extending Capabilities 📈
 
-It doesn't end there. Buddy also comes with separate features that can be enabled. These be both **models** and **additional abilities**.
+It doesn't end there. Buddy also comes with separate modules that can be enabled: **models** and **abilities**.
 
 #### Model Support
 
@@ -38,7 +38,7 @@ The following LLMs are supported through Buddy:
 
 #### Abilities
 
-Want to go even further than your own shell's capabilities? Well, Buddy is quite capable.
+Want to go even further than your own shell's capabilities? Well, Buddy is quite capable of performing more specialized tasks.
 
 - **[TODO] Browsing:** Enable Buddy to utilize Chrome to search the web and interact with webpages for research tasks.
 - **[TODO] Analysis:** Give Buddy the ability to read and understand spreadsheets, PDFs, and images.
@@ -105,7 +105,7 @@ If you want to play around with Buddy CLI without fear of something going wrong 
    ```bash
    // On Windows
    start.bat
-
+   
    // On Linux or Mac
    chown +x ./start.sh
    ./start.sh
@@ -124,8 +124,8 @@ buddy what time is it?
 - `buddy carefully <request>` - Let Buddy handle a task, but with user confirmation for every non-read action
 - `buddy explain <command>` - Get detailed and informative documentation on any command(s) before you run them through your shell
 - `buddy help <request>` - Let Buddy develop a plan for a task and walk you through it step-by-step, providing educational context along the way. If issues are encountered, Buddy will help you through it and make sure you know what's going on. It will even help you test & validate changes afterwards.
-- `buddy use <feature> [...arguments]` - Enable Buddy to use a specific model or extra feature when working on tasks
-- `buddy remove <feature>` - Removes Buddy's ability to use a feature, also removing its configuration
+- `buddy use <model/ability> <name> [options]` - Enable Buddy to use a specific model or extra ability when working on tasks
+- `buddy remove <model/ability>` - Removes Buddy's ability to use an ability, also removing its configuration
 
 ## 🛠 Development
 

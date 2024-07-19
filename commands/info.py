@@ -1,5 +1,5 @@
 import initialize_modules
-from features import FEATURES
+from abilities import ABILITIES
 from models import MODELS
 from config.config_manager import ConfigManager
 
@@ -14,42 +14,45 @@ def display_info():
     all_models = [name for name, _ in MODELS.items()]    
     current_model = config.get_current_model()
 
-    enabled_features = config.get_features()
-    all_features = [name for name, _ in FEATURES.items()]
+    enabled_abilities = config.get_abilities()
+    all_abilities = [name for name, _ in ABILITIES.items()]
     
-    enabled_features_str = ", ".join(enabled_features) if len(enabled_features) > 0 else "None"
-    disabled_features_str = ", ".join([feature for feature in all_features if feature not in enabled_features]) if len(enabled_features) < len(all_features) else "None"
+    enabled_abilities_str = ", ".join(enabled_abilities) if len(enabled_abilities) > 0 else "None"
+    disabled_abilities_str = ", ".join([ability for ability in all_abilities if ability not in enabled_abilities]) if len(enabled_abilities) < len(all_abilities) else "None"
     
     info_text = f"""
-    Buddy CLI - Command Line Utility powered by Generative AI
+Buddy CLI - Command Line Utility powered by Generative AI
 
-    Configuration:
-        Current Model: {current_model}
-        Available Models: {", ".join(all_models)}
-        Enabled Features: {enabled_features_str}
-        Available Features: {disabled_features_str}
+Configuration:
+    Current Model: {current_model}
+    Available Models: {", ".join(all_models)}
+    Enabled Abilities: {enabled_abilities_str}
+    Available Abilities: {disabled_abilities_str}
 
-    Usage:
-        buddy <task> - Execute a task in the shell without supervision
-        buddy <command> [options] - Execute a Buddy command
+Usage:
+    buddy <task> - Execute a task in the shell without supervision
+    buddy <command> [options] - Execute a Buddy command
 
-    Commands:
-        info                                Display this information
-        help        <task>                  Work through a task collaboratively
-        carefully   <task>                  Execute commands with confirmation on non-read operations
-        explain     <command>               Provide an educational explanation of a command
-        use         <feature> [arguments]   Configure Buddy to use a specific model or feature.
+Commands:
+    info                                            Display this information
+    help        <task>                              Work through a task collaboratively
+    carefully   <task>                              Execute commands with confirmation on non-read operations
+    explain     <command>                           Provide an educational explanation of a command
+    use         <model/ability> <name> [arguments]  Configure Buddy to use a specific model or ability
 
-    Features:
-        gpt4o <apiKey>    Configure Buddy to use OpenAI GPT-4 and save the specified API key.
+Models:
+    gpt-4o       <apiKey>                            Configure Buddy to use OpenAI GPT-4 and save the specified API key
 
-    Examples:
-        buddy what's my local IP address
-        buddy carefully remove kubernetes
-        buddy help me set up a Minecraft server
-        buddy explain source ~/.bashrc
-        buddy use gpt4o YOUR_API_KEY
-        buddy use chrome
+Abilities:
+    
+
+Examples:
+    buddy what's my local IP address
+    buddy carefully remove kubernetes
+    buddy help me set up a Minecraft server
+    buddy explain source ~/.bashrc
+    buddy use gpt4o YOUR_API_KEY
+    buddy use chrome
     """
     print(info_text)
 

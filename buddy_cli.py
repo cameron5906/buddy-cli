@@ -6,8 +6,8 @@ import os
 sys.path.append(os.path.dirname(__file__))
 
 import initialize_modules
-from commands.use import use_feature
-from commands.remove import remove_feature
+from commands.use import use
+from commands.remove import remove_ability
 from commands.info import display_info
 from model_factory import ModelFactory
 
@@ -27,7 +27,7 @@ def main():
         sys.exit(0)
         
     elif command == "use":
-        use_feature(sys.argv[2:])
+        use(sys.argv[2:])
         sys.exit(0)
         
     elif command == "remove":
@@ -37,7 +37,7 @@ def main():
         
         feature_name = sys.argv[2]
         
-        remove_feature(feature_name)
+        remove_ability(feature_name)
         sys.exit(0)
     
     # Load the configured model

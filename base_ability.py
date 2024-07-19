@@ -1,24 +1,24 @@
-class BaseFeature:
+class BaseAbility:
 
     def execute(self, argument_json):
         """
-        Executes the feature with the given arguments.
+        Executes the ability with the given arguments.
         
         Args:
-            argument_json (dict): The arguments to pass to the feature
+            argument_json (dict): The arguments to pass to the ability
             
         Returns:
-            Any: The result of the feature execution
+            Any: The result of the ability execution
         """
         
         raise NotImplementedError("Subclasses should implement this!")
     
     def enable(self, args=None):
         """
-        Logic to enable and configure the feature.
+        Logic to enable and configure the ability.
         
         Args:
-            args (list): The arguments to configure the feature
+            args (list): The arguments to configure the ability
             
         Raises:
             ValueError: If the arguments are invalid
@@ -28,7 +28,7 @@ class BaseFeature:
     
     def disable(self):
         """
-        Logic to disable the feature.
+        Logic to disable the ability.
         """
         
         pass
