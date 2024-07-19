@@ -35,26 +35,29 @@ def run_command(command):
     Returns:
         tuple: A tuple containing the stdout and stderr of the command
     """
-    
-    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
     full_stdout = []
     full_stderr = []
-
-    stdout_iter = iter(process.stdout.readline, '')
-    stderr_iter = iter(process.stderr.readline, '')
-
-    for stdout_line in stdout_iter:
-        print_fancy(stdout_line.strip(), italic=True, color="light_gray")
-        full_stdout.append(stdout_line)
     
-    for stderr_line in stderr_iter:
-        print_fancy(stderr_line.strip(), italic=True, color="red")
-        full_stderr.append(stderr_line)
+    try:
+        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-    process.stdout.close()
-    process.stderr.close()
-    process.wait()
+        stdout_iter = iter(process.stdout.readline, '')
+        stderr_iter = iter(process.stderr.readline, '')
+
+        for stdout_line in stdout_iter:
+            print_fancy(stdout_line.strip(), italic=True, color="light_gray")
+            full_stdout.append(stdout_line)
+        
+        for stderr_line in stderr_iter:
+            print_fancy(stderr_line.strip(), italic=True, color="red")
+            full_stderr.append(stderr_line)
+
+        process.stdout.close()
+        process.stderr.close()
+        process.wait()
+    except Exception as e:
+        full_stderr.append(str(e))
 
     return ''.join(full_stdout), ''.join(full_stderr)
 
