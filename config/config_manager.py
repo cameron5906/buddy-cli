@@ -1,3 +1,5 @@
+import initialize_modules
+from models import MODELS
 import os
 import json
 from utils.shell_utils import print_fancy
@@ -27,7 +29,13 @@ class ConfigManager:
             with open(CONFIG_FILE, 'r') as f:
                 self.config = json.load(f)
         else:
-            self.config = {"current_model": "gpt4o", "features": []}
+            if len(MODELS) == 0:
+                print_fancy("No models found. Please install models to use Buddy.", color="red")
+                exit(1)
+
+            first_model = list(MODELS.keys())[0]
+            
+            self.config = {"current_model": first_model, "abilities": []}
             self.save_config()
 
     def save_config(self):
@@ -49,28 +57,30 @@ class ConfigManager:
         
         self.config["current_model"] = model_name
         self.save_config()
+        
+        print_fancy(f"Set current model to: {model_name}", color="green")
 
-    def add_feature(self, feature):
+    def add_ability(self, ability):
         """
-        Enables a feature for Buddy to use and saves the configuration.
-        """
-        
-        if feature not in self.config["features"]:
-            self.config["features"].append(feature)
-            self.save_config()
-            
-        print_fancy(f"Enabled feature: {feature}", color="green")
-            
-    def remove_feature(self, feature):
-        """
-        Disables a feature for Buddy and saves the configuration.
+        Enables an ability for Buddy to use and saves the configuration.
         """
         
-        if feature in self.config["features"]:
-            self.config["features"].remove(feature)
+        if ability not in self.config["abilities"]:
+            self.config["abilities"].append(ability)
             self.save_config()
             
-        print_fancy(f"Disabled feature: {feature}", color="green")
+        print_fancy(f"Enabled ability: {ability}", color="green")
+            
+    def remove_ability(self, ability):
+        """
+        Disables an ability for Buddy and saves the configuration.
+        """
+        
+        if ability in self.config["abilities"]:
+            self.config["abilities"].remove(ability)
+            self.save_config()
+            
+        print_fancy(f"Disabled ability: {ability}", color="green")
 
     def get_current_model(self):
         """
@@ -79,9 +89,9 @@ class ConfigManager:
         
         return self.config.get("current_model", "gpt4o")
 
-    def get_features(self):
+    def get_abilities(self):
         """
-        Retrieves the list of features enabled for Buddy.
+        Retrieves the list of abilities enabled for Buddy.
         """
         
-        return self.config.get("features", [])
+        return self.config.get("abilities", [])

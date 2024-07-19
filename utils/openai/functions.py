@@ -136,7 +136,7 @@ def process_chat_response(response, require_mutation_approval=False):
                 })
                 
             elif tool_name == "execute_command":
-                if tool_args['dangerous'] and require_mutation_approval:
+                if require_mutation_approval and "dangerous" in tool_args and tool_args["dangerous"]:
                     is_approved = False
                     print_fancy(f"Proposed command: {tool_args['command']}", bold=True, bg="yellow", color="black")
                     
@@ -224,7 +224,7 @@ def summarize(content):
     """
     
     secure_store = SecureStore()
-    api_key = secure_store.get_api_key("openai")
+    api_key = secure_store.get_api_key("gpt-4o")
     client = OpenAI(api_key=api_key)
     
     messages = [

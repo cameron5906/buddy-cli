@@ -1,11 +1,12 @@
 from openai import OpenAI
-from models.base_model import BaseModel
-from models.openai.functions import make_tool_definition, process_chat_response
-from config.secure_store import SecureStore
+from models import model
+from base_model import BaseModel
+from utils.openai.functions import make_tool_definition, process_chat_response
 from utils.shell_utils import print_fancy, get_system_context, \
     format_markdown_for_terminal
 
 
+@model("gpt-4o")
 class GPT4OModel(BaseModel):
     """
     A class to interact with the GPT-4o model from OpenAI
@@ -13,11 +14,10 @@ class GPT4OModel(BaseModel):
 
     def __init__(self):
         """
-        Initializes the GPT4OModel by loading the API key from the secure store and creating an OpenAI client.
+        Initializes the GPT4OModel by creating an OpenAI client instance.
         """
         
-        secure_store = SecureStore()
-        self.api_key = secure_store.get_api_key("openai")
+        super().__init__()
         self.client = OpenAI(api_key=self.api_key)
 
     def execute_unsupervised(self, query):

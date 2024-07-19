@@ -1,37 +1,80 @@
 import sys
-import initialize_features
-from features import FEATURES, get_feature
+import initialize_modules
+from abilities import ABILITIES, get_ability
+from models import MODELS
 from config.config_manager import ConfigManager
 from config.secure_store import SecureStore
 from utils.shell_utils import print_fancy
 
 
-def remove_feature(feature_name):
+def remove(args):
     """
-    Removes a feature and its corresponding configuration from Buddy.
+    Entry point for the 'remove' command. Removes a model or ability from Buddy.
     
     Args:
-        feature_name (str): The name of the feature to remove
+        args (list): List of arguments passed to the command
+    """
+    
+    resource_type = args[0]
+    
+    if resource_type == "model":
+        if len(args) < 2:
+            print_fancy("Usage: buddy remove model <name>", color="red")
+            sys.exit(1)
+            
+        remove_model(args[1])
+    elif resource_type == "ability":
+        if len(args) < 2:
+            print_fancy("Usage: buddy remove ability <name>", color="red")
+            sys.exit(1)
+            
+        remove_ability(args[1])
+    else:
+        print("Usage: buddy remove <model/ability> <name>")
+        sys.exit(1)
+
+
+def remove_model(model_name):
+    """
+    Removes configuration for a model from Buddy.
+    
+    Args:
+        model_name (str): The name of the model to remove
+    """
+    
+    current_model_name = ConfigManager().get_current_model()
+    
+    if model_name == current_model_name:
+        print_fancy("Cannot remove the current model. Please switch to another model first using 'buddy use model <name>'.", color="red")
+        sys.exit(1)
+        
+    if model_name not in MODELS:
+        print_fancy(f"Unknown model '{model_name}'", color="red")
+        sys.exit(1)
+        
+    secure_store = SecureStore()
+    secure_store.remove_api_key(model_name)
+    
+    print_fancy(f"Removed {MODELS[model_name]['name']} model configuration", color="green")
+
+
+def remove_ability(ability_name):
+    """
+    Disables and removes configuration for an ability from Buddy.
+    
+    Args:
+        ability_name (str): The name of the ability to remove
     """
     
     config_manager = ConfigManager()
-    secure_store = SecureStore()
 
-    if feature_name == "gpt4o":
-        secure_store.remove_api_key("openai")
-        config_manager.set_current_model("gpt4o")
-        print_fancy("Removed GPT-4o model configuration", color="green")
-        sys.exit(0)
-
-    if feature_name not in FEATURES:
-        print_fancy(f"Unknown feature: {feature_name}", color="red")
+    if ability_name not in ABILITIES:
+        print_fancy(f"Unknown ability '{ability_name}'", color="red")
         sys.exit(1)
 
-    feature = get_feature(feature_name)
+    ability = get_ability(ability_name)
     
-    if feature is None:
-        print_fancy(f"Feature {feature_name} is not implemented", color="red")
-        sys.exit(1)
-
-    feature.disable()
-    config_manager.remove_feature(feature_name)
+    ability.disable()
+    config_manager.remove_ability(ability_name)
+    
+    print_fancy(f"Removed {ability.name} ability", color="green")
