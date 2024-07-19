@@ -1,3 +1,5 @@
+import initialize_modules
+from models import get_model
 from config.config_manager import ConfigManager
 from models.gpt4o import GPT4OModel
 
@@ -20,12 +22,15 @@ class ModelFactory:
     def get_model(self):
         """
         Retrieves the name of the current model from the configuration and returns an instance of that model.
+        
+        Raises:
+            ValueError: If the current model is not recognized
         """
         
         model_name = self.config.get_current_model()
         
-        if model_name == "gpt4o":
-            return GPT4OModel()
-        
-        else:
+        model = get_model(model_name)
+        if model is None:
             raise ValueError(f"Unknown model: {model_name}")
+        
+        return model        

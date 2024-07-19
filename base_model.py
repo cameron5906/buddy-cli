@@ -1,3 +1,6 @@
+from config.secure_store import SecureStore
+
+
 class BaseModel:
     """
     The base class for all models in the system, defining the interface that all models must implement.
@@ -73,6 +76,15 @@ The user will only be able to see what you say through the tools that you call, 
     explain_flow_instructions = """
 You will provide a detailed explanation of a shell command provided to you by the user. Your explanation should be informative and educational, providing context and reasoning for the command and its usage.
 """
+
+    def __init__(self):
+        """
+        Initializes the model by loading the API key from the secure store.
+        """
+        
+        secure_store = SecureStore()
+        model_name = getattr(self.__class__, 'model_name', None)
+        self.api_key = secure_store.get_api_key(model_name)
 
     def execute_unsupervised(self, query):
         """
