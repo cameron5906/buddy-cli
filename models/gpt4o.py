@@ -2,7 +2,8 @@ from openai import OpenAI
 from models.base_model import BaseModel
 from models.openai.functions import make_tool_definition, process_chat_response
 from config.secure_store import SecureStore
-from utils.shell_utils import print_fancy, get_system_context
+from utils.shell_utils import print_fancy, get_system_context, \
+    format_markdown_for_terminal
 
 
 class GPT4OModel(BaseModel):
@@ -214,3 +215,29 @@ class GPT4OModel(BaseModel):
             
         # End of the process
         print_fancy("Task completed", bold=True, underline=True, color="green")
+
+    def explain(self, command_string):
+        """
+        Generates a detailed explanation of a command for educational purposes.
+        
+        Args:
+            command_string (str): The command to explain
+            
+        Returns:
+            str: The explanation of the command
+        """
+        
+        response = self.client.chat.completions.create(model="gpt-4o",
+        messages=[
+            {
+                "role": "system",
+                "content": BaseModel.explain_flow_instructions  
+            },
+            {
+                "role": "user",
+                "content": f"Explain the command: {command_string}"
+            },
+        ],
+        temperature=0.3)
+        
+        format_markdown_for_terminal(response.choices[0].message.content)

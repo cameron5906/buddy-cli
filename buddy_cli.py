@@ -48,6 +48,14 @@ def main():
         query = " ".join(sys.argv[2:])
         model.execute_carefully(query)
     
+    elif command == "explain":
+        if len(sys.argv) < 3:
+            print("Usage: buddy explain <command>")
+            sys.exit(1)
+            
+        command_string = " ".join(sys.argv[2:])
+        model.explain(command_string)
+    
     else:
         query = " ".join(sys.argv[1:])
         model.execute_unsupervised(query)    

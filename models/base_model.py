@@ -70,6 +70,10 @@ The process will be as follows:
 The user will only be able to see what you say through the tools that you call, so you should only output information for internal monologue.
 """
 
+    explain_flow_instructions = """
+You will provide a detailed explanation of a shell command provided to you by the user. Your explanation should be informative and educational, providing context and reasoning for the command and its usage.
+"""
+
     def execute_unsupervised(self, query):
         """
         Method for performing unsupervised tasks that don't require any user interaction.
@@ -102,6 +106,22 @@ The user will only be able to see what you say through the tools that you call, 
         
         Args:
             query (str): The task for which help is required
+            
+        Raises:
+            NotImplementedError: Subclasses should implement this method
+        """
+        
+        raise NotImplementedError("Subclasses should implement this method")
+    
+    def explain(self, command_string):
+        """
+        Generates a detailed explanation of a command for educational purposes.
+        
+        Args:
+            command_string (str): The command to explain
+            
+        Returns:
+            str: The explanation of the command
             
         Raises:
             NotImplementedError: Subclasses should implement this method
