@@ -20,6 +20,9 @@ def display_info():
     enabled_abilities_str = ", ".join(enabled_abilities) if len(enabled_abilities) > 0 else "None"
     disabled_abilities_str = ", ".join([ability for ability in all_abilities if ability not in enabled_abilities]) if len(enabled_abilities) < len(all_abilities) else "None"
     
+    model_list_str = "\n".join([f"    {name}" for name, _ in MODELS.items()])
+    ability_list_str = "\n".join([f"    {name} - {ability.description}" for name, ability in ABILITIES.items()])
+    
     info_text = f"""
 Buddy CLI - Command Line Utility powered by Generative AI
 
@@ -42,10 +45,10 @@ Commands:
     remove      <model/ability> <name>              Remove a model or ability from Buddy
 
 Models:
-    gpt-4o       <apiKey>                           Configure Buddy to use OpenAI GPT-4 and save the specified API key
+{model_list_str}
 
 Abilities:
-
+{ability_list_str}
 
 Examples:
     buddy what's my local IP address
