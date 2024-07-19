@@ -22,7 +22,9 @@ Some of us just aren't that great with command-line, and that's okay. It can be 
 
 By asking Buddy for help with a task, it will create a plan and walk you through executing it step-by-step. As it moves through the process with you, you are able to suggest changes and approve everything it does. As you move through each step, Buddy will provide educational context as to why each step is happening and, in the case of issues, it will help you find workaround and explain what it all means.
 
-Don't fear the shell.
+### Explanations
+
+We've all read through guides and followed tutorials online where the author gives you commands to run in your shell but without the context explaining what exactly it does, or why it does it. Buddy can give you in-depth explanations of commands or command chains before you run them yourself so you can be sure you know what it's about to do - or at least learn about why it works the way it does.
 
 ### Optional Features 🎫
 
@@ -123,9 +125,10 @@ buddy what time is it?
 
 ## 📚 Commands
 
-- `budy info` - Display usage instructions for Buddy CLI
+- `buddy info` - Display usage instructions and current configuration for Buddy CLI
 - `buddy <request>` - Let Buddy handle a task without any supervision *(**WARNING:** be careful!)*
 - `buddy carefully <request>` - Let Buddy handle a task, but with user confirmation for every non-read action
+- `buddy explain <command>` - Get detailed and informative documentation on any command(s) before you run them through your shell 
 - `buddy help <request>` - Let Buddy develop a plan for a task and walk you through it step-by-step, providing educational context along the way. If issues are encountered, Buddy will help you through it and make sure you know what's going on. It will even help you test & validate changes afterwards.
 - `buddy use <feature> [...arguments]` - Enable Buddy to use a specific model or extra feature when working on tasks
 
