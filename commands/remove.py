@@ -29,6 +29,9 @@ def remove(args):
             sys.exit(1)
             
         remove_ability(args[1])
+    else:
+        print("Usage: buddy remove <model/ability> <name>")
+        sys.exit(1)
 
 
 def remove_model(model_name):

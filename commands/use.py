@@ -54,7 +54,7 @@ def use_model(model_name, api_key=None):
     config_manager = ConfigManager()
     secure_store = SecureStore()
     
-    if not MODELS.get(model_name)
+    if not MODELS.get(model_name):
         print_fancy(f"Model {model_name} not found", bold=True, color="red")
         sys.exit(1)
     
