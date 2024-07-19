@@ -1,5 +1,6 @@
+import initialize_features
+from features import FEATURES
 from config.config_manager import ConfigManager
-from test.test___future__ import features
 
 
 def display_info():
@@ -9,15 +10,24 @@ def display_info():
 
     config = ConfigManager()
     features = config.get_features()
+    print(f"Debug: features from config = {features}")  # Debugging line
     
     current_model = config.get_current_model()
-    enabled_features = len(features) > 0 and ", ".join(features) or "None"
+    print(f"Debug: current model = {current_model}")  # Debugging line
+    
+    all_features = [name for name, _ in FEATURES.items()]
+    print(f"Debug: all features = {all_features}")  # Debugging line
+    
+    enabled_features = ", ".join(features) if len(features) > 0 else "None"
+    disabled_features = ", ".join([feature for feature in all_features if feature not in features]) if len(features) < len(all_features) else "None"
     
     info_text = f"""
     Buddy CLI - Command Line Utility powered by Generative AI
 
-    Current Model: {current_model}
-    Enabled Features: {enabled_features}
+    Configuration:
+        Current Model: {current_model}
+        Enabled Features: {enabled_features}
+        Available Features: {disabled_features}
 
     Usage:
         buddy <task> - Execute a task in the shell without supervision
@@ -42,3 +52,7 @@ def display_info():
         buddy use chrome
     """
     print(info_text)
+
+
+if __name__ == "__main__":
+    display_info()

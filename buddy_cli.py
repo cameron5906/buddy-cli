@@ -6,8 +6,10 @@ import os
 sys.path.append(os.path.dirname(__file__))
 
 from commands.use import use_feature
+from commands.remove import remove_feature
 from commands.info import display_info
 from models.model_factory import ModelFactory
+from features import discover_features
 
 model_factory = ModelFactory()
 
@@ -17,6 +19,7 @@ def main():
         print("Usage: buddy <command>")
         sys.exit(1)
 
+    discover_features()
     command = sys.argv[1]
 
     # Check for non-intelligent commands
@@ -26,6 +29,16 @@ def main():
         
     elif command == "use":
         use_feature(sys.argv[2:])
+        sys.exit(0)
+        
+    elif command == "remove":
+        if len(sys.argv) < 3:
+            print("Usage: buddy remove <feature>")
+            sys.exit(1)
+        
+        feature_name = sys.argv[2]
+        
+        remove_feature(feature_name)
         sys.exit(0)
     
     # Load the configured model
