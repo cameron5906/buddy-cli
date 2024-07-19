@@ -1,5 +1,6 @@
 import os
 import json
+from utils.shell_utils import print_fancy
 
 CONFIG_FILE = os.path.expanduser('~/.buddy_cli/config.json')
 
@@ -57,6 +58,19 @@ class ConfigManager:
         if feature not in self.config["features"]:
             self.config["features"].append(feature)
             self.save_config()
+            
+        print_fancy(f"Enabled feature: {feature}", color="green")
+            
+    def remove_feature(self, feature):
+        """
+        Disables a feature for Buddy and saves the configuration.
+        """
+        
+        if feature in self.config["features"]:
+            self.config["features"].remove(feature)
+            self.save_config()
+            
+        print_fancy(f"Disabled feature: {feature}", color="green")
 
     def get_current_model(self):
         """
