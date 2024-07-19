@@ -1,5 +1,9 @@
+import sys
+import initialize_features
+from features import FEATURES, get_feature
 from config.config_manager import ConfigManager
 from config.secure_store import SecureStore
+from utils.shell_utils import print_fancy
 
 
 def use_feature(args):
@@ -26,10 +30,11 @@ def use_feature(args):
             return
         secure_store.set_api_key("openai", value)
         config_manager.set_current_model("gpt4o")
-    elif feature == "chrome":
-        config_manager.add_feature("chrome")
     else:
-        print(f"Unknown feature: {feature}")
-        return
-
-    print(f"Configured {feature} with value {value}" if value else f"Configured {feature}")
+        if feature not in FEATURES:
+            print_fancy(f"Unknown feature: {feature}", color="red")
+            sys.exit(1)
+        
+        inst = get_feature(feature)
+        inst.enable(args[1:])
+        config_manager.add_feature(feature)

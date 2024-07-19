@@ -7,9 +7,45 @@ class BaseModel:
         help_flow_instructions (str): System prompt for the educational help flow
     """
     
-    unsupervised_flow_instructions = "You will create shell commands for user requests that will be correctly formatted to be run directly in a system shell. You will not write any other commentary, suggestions, or notes - only the command to run"
+    unsupervised_flow_instructions = """"
+You will perform a task for the user by using the system shell. Commands you execute should be non-interactive and should not require user input and should not be expecting CTRL+C or other signals; do not let any processes run indefinitely.
+
+The process will be as follows:
+1. Create a high-level plan that will be followed to accomplish the task from the shell
+2. Iterate over each step in the plan
+2.1 Execute the command for the step
+2.2 Review the stdout & stderr output of the command
+2.2.1 If the output is as expected, continue to the next step
+2.2.2 If the output is not as expected, attempt to resolve the issue before moving on to the next step
+3. Repeat steps 2.1-2.2 until all steps in the plan are completed
+4. End the process
+
+You will give each step a maximum of 5 attempts to complete successfully. If a step fails after 5 attempts, you will cancel the task and inform the user.
+If you successfully complete the task, you will inform the user that the task was completed successfully with a summary of what was done.
+"""
+
+    careful_flow_instructions = """"
+You will perform a task for the user by using the system shell. Commands you execute should be non-interactive and should not require user input and should not be expecting CTRL+C or other signals; do not let any processes run indefinitely.
+
+The process will be as follows:
+1. Create a high-level plan that will be followed to accomplish the task from the shell
+2. Iterate over each step in the plan
+2.1 Execute the command for the step
+2.2 Review the stdout & stderr output of the command
+2.2.1 If the output is as expected, continue to the next step
+2.2.2 If the output is not as expected, attempt to resolve the issue before moving on to the next step
+3. Repeat steps 2.1-2.2 until all steps in the plan are completed
+4. End the process
+
+You will give each step a maximum of 5 attempts to complete successfully. If a step fails after 5 attempts, you will cancel the task and inform the user.
+If you successfully complete the task, you will inform the user that the task was completed successfully with a summary of what was done.
+
+Each command you execute will need to be marked as "dangerous", which is classified as any command that could modify the system or data in any way.
+If the user declines any of your commands, you will not execute them and you will either stop the task or follow the user's instructions.
+"""
     
-    help_flow_instructions = """You will walk the user through a step-by-step process of accomplishing a task through the system shell. Commands you execute should be non-interactive and should not require user input.
+    help_flow_instructions = """
+You will walk the user through a step-by-step process of accomplishing a task through the system shell. Commands you execute should be non-interactive and should not require user input and should not be expecting CTRL+C or other signals; do not let any processes run indefinitely.
 
 The process will be as follows:
 1. Create a high-level plan that will be followed to accomplish the task from the shell
@@ -28,12 +64,17 @@ The process will be as follows:
 2.4.1. Provide a summary of the output to the user in an educational manner
 2.4.2. If the output is as expected, continue to the next step
 2.4.3. If the output is not as expected, attempt to resolve the issue before moving on to the next step
-3. Repeat steps 2a-2c until all steps in the plan are completed
+3. Repeat steps 2.1-2.4 until all steps in the plan are completed
 4. End the process
 
-The user will only be able to see what you say through the tools that you call, so you should only output information for internal monologue."""
+The user will only be able to see what you say through the tools that you call, so you should only output information for internal monologue.
+"""
 
-    def generate_command(self, query):
+    explain_flow_instructions = """
+You will provide a detailed explanation of a shell command provided to you by the user. Your explanation should be informative and educational, providing context and reasoning for the command and its usage.
+"""
+
+    def execute_unsupervised(self, query):
         """
         Method for performing unsupervised tasks that don't require any user interaction.
         
@@ -46,12 +87,41 @@ The user will only be able to see what you say through the tools that you call, 
         
         raise NotImplementedError("Subclasses should implement this method")
     
-    def generate_help(self, query):
+    def execute_carefully(self, query):
+        """
+        Method for performing supervised tasks that require user confirmation before execution of non-read commands.
+        
+        Args:
+            query (str): The task to be performed
+            
+        Raises:
+            NotImplementedError: Subclasses should implement this method
+        """
+        
+        raise NotImplementedError("Subclasses should implement this method")
+    
+    def execute_educational(self, query):
         """
         Method for walking a user through a task step-by-step while being informative and educational.
         
         Args:
             query (str): The task for which help is required
+            
+        Raises:
+            NotImplementedError: Subclasses should implement this method
+        """
+        
+        raise NotImplementedError("Subclasses should implement this method")
+    
+    def explain(self, command_string):
+        """
+        Generates a detailed explanation of a command for educational purposes.
+        
+        Args:
+            command_string (str): The command to explain
+            
+        Returns:
+            str: The explanation of the command
             
         Raises:
             NotImplementedError: Subclasses should implement this method

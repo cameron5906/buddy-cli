@@ -47,7 +47,18 @@ def make_tool_definition(name, description, parameterDict=None, required=None):
     }
 
 
-def process_chat_response(response):
+def process_chat_response(response, require_mutation_approval=False):
+    """
+    Processes an OpenAI ChatML response, executing any tools and returning the results and status.
+    
+    Args:
+        response (object): The response object from OpenAI
+        require_mutation_approval (bool): Whether to require user approval for any mutation commands
+        
+    Returns:
+        tuple: A tuple containing the finished status, failure status, and a list of messages to add to chat context
+    """
+    
     choice = response.choices[0]
     returned_messages = [choice.message]
     
@@ -125,16 +136,48 @@ def process_chat_response(response):
                 })
                 
             elif tool_name == "execute_command":
+                if tool_args['dangerous'] and require_mutation_approval:
+                    is_approved = False
+                    print_fancy(f"Proposed command: {tool_args['command']}", bold=True, bg="yellow", color="black")
+                    
+                    while True:
+                        print_fancy("OK to execute? (y/n)", italic=True, color="blue")
+                        user_approval_input = input("> ")
+                        
+                        if is_approval(user_approval_input):
+                            is_approved = True
+                            
+                            break
+                        
+                        elif is_denial(user_approval_input):
+                            print_fancy("Please provide reasoning or provide other instructions", italic=True, color="blue")
+                            
+                            user_feedback = input("> ")
+                            
+                            returned_messages.append({
+                                "role": "tool",
+                                "tool_call_id": tool_call.id,
+                                "name": "execute_command",
+                                "content": f"Command execution denied by user with reasoning: {user_feedback}"
+                            })
+                            break
+                    
+                    if not is_approved:
+                        continue
+                
                 stdout, stderr = run_command(tool_args['command'])
                 
-                summarized_out = summarize(stdout)
-                summarized_err = summarize(stderr)
+                if len(stdout) > 1000:
+                    stdout = summarize(stdout)
+                
+                if len(stderr) > 1000:
+                    stderr = summarize(stderr)
                 
                 returned_messages.append({
                     "role": "tool",
                     "tool_call_id": tool_call.id,
                     "name": "execute_command",
-                    "content": f"Execution complete\n\n### Stdout Summary\n{summarized_out}\n\n### Stderr Summary\n{summarized_err}"
+                    "content": f"Execution complete\n\n### Stdout Summary\n{stdout}\n\n### Stderr Summary\n{stderr}"
                 })
                     
             elif tool_name == "end_process":
@@ -142,11 +185,22 @@ def process_chat_response(response):
                 if not tool_args['success']:
                     is_failure = True
                     
+                if tool_args['summary']:
+                    format_markdown_for_terminal(tool_args['summary'])
+                    
                 returned_messages.append({
                     "role": "tool",
                     "tool_call_id": tool_call.id,
                     "name": "end_process",
                     "content": "Success"
+                })
+                
+            else:
+                returned_messages.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "name": tool_name,
+                    "content": "The tool was not recognized"
                 })
                 
     if len(returned_messages) == 0:
@@ -159,6 +213,16 @@ def process_chat_response(response):
 
 
 def summarize(content):
+    """
+    Summarizes a block of potentially long text into a smaller summary.
+    
+    Args:
+        content (str): The content to summarize
+        
+    Returns:
+        str: The summarized content
+    """
+    
     secure_store = SecureStore()
     api_key = secure_store.get_api_key("openai")
     client = OpenAI(api_key=api_key)
