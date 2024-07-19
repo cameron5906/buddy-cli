@@ -5,11 +5,11 @@ import os
 # Add the current directory to the Python path to ensure modules can be found
 sys.path.append(os.path.dirname(__file__))
 
+import initialize_modules
 from commands.use import use_feature
 from commands.remove import remove_feature
 from commands.info import display_info
-from models.model_factory import ModelFactory
-from features import discover_features
+from model_factory import ModelFactory
 
 model_factory = ModelFactory()
 
@@ -19,7 +19,6 @@ def main():
         print("Usage: buddy <command>")
         sys.exit(1)
 
-    discover_features()
     command = sys.argv[1]
 
     # Check for non-intelligent commands
