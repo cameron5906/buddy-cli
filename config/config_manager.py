@@ -1,8 +1,5 @@
-import initialize_modules
-from models import MODELS
 import os
 import json
-from utils.shell_utils import print_fancy
 
 CONFIG_FILE = os.path.expanduser('~/.buddy_cli/config.json')
 
@@ -10,6 +7,9 @@ CONFIG_FILE = os.path.expanduser('~/.buddy_cli/config.json')
 class ConfigManager:
     """
     Manages the configuration of the Buddy CLI.
+    
+    Attributes:
+        config (dict): The configuration settings for Buddy
     """
     
     def __init__(self):
@@ -29,13 +29,7 @@ class ConfigManager:
             with open(CONFIG_FILE, 'r') as f:
                 self.config = json.load(f)
         else:
-            if len(MODELS) == 0:
-                print_fancy("No models found. Please install models to use Buddy.", color="red")
-                exit(1)
-
-            first_model = list(MODELS.keys())[0]
-            
-            self.config = {"current_model": first_model, "abilities": []}
+            self.config = {"current_model": "", "abilities": []}
             self.save_config()
 
     def save_config(self):
@@ -57,8 +51,6 @@ class ConfigManager:
         
         self.config["current_model"] = model_name
         self.save_config()
-        
-        print_fancy(f"Set current model to: {model_name}", color="green")
 
     def add_ability(self, ability):
         """
@@ -69,8 +61,6 @@ class ConfigManager:
             self.config["abilities"].append(ability)
             self.save_config()
             
-        print_fancy(f"Enabled ability: {ability}", color="green")
-            
     def remove_ability(self, ability):
         """
         Disables an ability for Buddy and saves the configuration.
@@ -79,15 +69,13 @@ class ConfigManager:
         if ability in self.config["abilities"]:
             self.config["abilities"].remove(ability)
             self.save_config()
-            
-        print_fancy(f"Disabled ability: {ability}", color="green")
 
     def get_current_model(self):
         """
         Retrieves the current model being used by Buddy.
         """
         
-        return self.config.get("current_model", "gpt4o")
+        return self.config.get("current_model", None)
 
     def get_abilities(self):
         """
