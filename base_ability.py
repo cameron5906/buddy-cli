@@ -1,17 +1,11 @@
+
+
 class BaseAbility:
 
-    def execute(self, argument_json):
+    def __init__(self):
         """
-        Executes the ability with the given arguments.
-        
-        Args:
-            argument_json (dict): The arguments to pass to the ability
-            
-        Returns:
-            Any: The result of the ability execution
+        Initializes the ability.
         """
-        
-        raise NotImplementedError("Subclasses should implement this!")
     
     def enable(self, args=None):
         """
@@ -33,3 +27,27 @@ class BaseAbility:
         
         pass
     
+    def get_prompt(self):
+        """
+        Used to add additional information to the system prompt.
+        
+        Returns:
+            str | None: A new segment to add to the prompt, or None if no segment should be added
+        """
+        
+        return None
+        
+    def call_action(self, model, action_name, argument_dict):
+        """
+        Calls an action with the given arguments.
+        
+        Args:
+            model (BaseModel): The model that is calling the action
+            action_name (str): The name of the action
+            argument_dict (dict): The arguments to pass to the action
+            
+        Returns:
+            Any: The result of the action
+        """
+        
+        return self.action_handlers[action_name](self, model, argument_dict)
