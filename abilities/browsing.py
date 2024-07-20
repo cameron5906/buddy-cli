@@ -113,7 +113,7 @@ Obey the following guidelines:
                 tools=tools
             )
             
-            messages.append(response.choices[0])
+            messages.append(response.choices[0].message)
             
             note_call_id, note_call_args, note_call = model.get_tool_call("add_note", response)
             
@@ -211,7 +211,7 @@ When you have found a result that you believe matches the goal of the search, yo
                 tools=tools
             )
             
-            messages.append(response.choices[0])
+            messages.append(response.choices[0].message)
             
             call_id, call_args, call = model.get_tool_call("get_link_url", response)
             
