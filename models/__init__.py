@@ -67,7 +67,7 @@ def get_model(name, *args, **kwargs):
     return model_cls(*args, **kwargs)
 
 
-def find_models(provider: ModelProvider, vision_capability=None, min_context=None, max_cost=None):
+def find_models(provider: ModelProvider, vision_capability=None, min_context=None, lowest_cost=False):
     """
     Find models based on provider, vision capability, context size, and cost.
     
@@ -75,13 +75,13 @@ def find_models(provider: ModelProvider, vision_capability=None, min_context=Non
         provider (ModelProvider): The provider to filter by
         vision_capability (bool): Whether the model has vision capability
         min_context (int): The minimum context size
-        max_cost (float): The maximum cost per thousand input tokens
+        lowest_cost (bool): Whether to sort by lowest cost
         
     Returns:
         list (str): A list of model names that match the criteria
     """
     
-    return [
+    model_names = [
         name for name, cls in MODELS.items() 
         if cls.provider == provider 
         and (
@@ -92,8 +92,9 @@ def find_models(provider: ModelProvider, vision_capability=None, min_context=Non
             min_context is None 
             or cls.context_size >= min_context
         )
-        and (
-            max_cost is None 
-            or cls.cost_per_thousand_input_tokens <= max_cost
-        )
     ]
+    
+    if lowest_cost:
+        model_names.sort(key=lambda name: MODELS[name].cost_per_thousand_input_tokens)
+        
+    return model_names
