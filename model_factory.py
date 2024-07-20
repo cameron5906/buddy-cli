@@ -1,6 +1,8 @@
 import initialize_models
+import sys
 from models import get_model
 from config.config_manager import ConfigManager
+from utils.shell_utils import print_fancy
 
 
 class ModelFactory:
@@ -30,6 +32,7 @@ class ModelFactory:
         
         model = get_model(model_name)
         if model is None:
-            raise ValueError(f"Unknown model: {model_name}")
+            print_fancy("A model has not been configured. Type 'buddy info' for more information.", bold=True, color="red")
+            sys.exit(1)
         
         return model        
