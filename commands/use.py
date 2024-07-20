@@ -1,5 +1,6 @@
 import sys
-import initialize_modules
+import initialize_abilities
+import initialize_models
 from abilities import ABILITIES, get_ability
 from models import MODELS
 from config.config_manager import ConfigManager
@@ -28,11 +29,11 @@ def use(args):
         print_fancy("Usage: buddy use model <model> <api key>", color="red")
         sys.exit(1)
     elif resource_type == "ability":
-        if len(args) > 1:
-            use_ability(args[0], args[1:])
+        if len(args) > 2:
+            use_ability(args[1], args[2:])
             sys.exit(0)
-        elif len(args) == 1:
-            use_ability(args[0])
+        elif len(args) == 2:
+            use_ability(args[1])
             sys.exit(0)
             
         print_fancy("Usage: buddy use ability <name> [options]", color="red")
@@ -83,9 +84,8 @@ def use_ability(ability_name, args=None):
         args (list): List of arguments to pass to the ability for configuration
     """
     
-    if len(args) < 1:
-        print("Usage: buddy use <ability> [options]")
-        return
+    if args is None:
+        args = []
     
     if ability_name not in ABILITIES:
         print_fancy(f"Unknown ability '{ability_name}'", color="red")
@@ -95,6 +95,9 @@ def use_ability(ability_name, args=None):
 
     # Initialize the ability and run the enablement process
     inst = get_ability(ability_name)
-    inst.enable(args)
+    
+    if not inst.enable(args):
+        print_fancy(f"Failed to enable ability '{ability_name}'", color="red")
+        sys.exit(1)
     
     config_manager.add_ability(ability_name)
