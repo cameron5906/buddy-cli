@@ -1,7 +1,6 @@
-import initialize_modules
+import initialize_models
 from models import get_model
 from config.config_manager import ConfigManager
-from models.gpt4o import GPT4OModel
 
 
 class ModelFactory:
@@ -26,7 +25,7 @@ class ModelFactory:
         Raises:
             ValueError: If the current model is not recognized
         """
-        
+                
         model_name = self.config.get_current_model()
         
         model = get_model(model_name)
