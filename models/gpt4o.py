@@ -1,7 +1,5 @@
 from models.base_gpt import BaseGPT
 from models import model
-from base_model import BaseModel
-from utils.openai.functions import process_chat_response
 from utils.shell_utils import print_fancy, get_system_context, \
     format_markdown_for_terminal
 
@@ -73,7 +71,7 @@ If you successfully complete the task, you will inform the user that the task wa
                 ]
             )
             
-            is_finished, is_failure, returned_messages = process_chat_response(self, response, tools=ability_tools)
+            is_finished, is_failure, returned_messages = self.handle_internal_tools(response)
             
             if is_finished:
                 if is_failure:
@@ -149,7 +147,7 @@ If the user declines any of your commands, you will not execute them and you wil
                 ]
             )
             
-            is_finished, is_failure, returned_messages = process_chat_response(self, response, tools=ability_tools, require_mutation_approval=True)
+            is_finished, is_failure, returned_messages = self.handle_internal_tools(response, require_mutation_approval=True)
             
             if is_finished:
                 if is_failure:
@@ -258,7 +256,7 @@ The user will only be able to see what you say through the tools that you call, 
                 ]
             )
             
-            is_finished, is_failure, returned_messages = process_chat_response(self, response, tools=ability_tools)
+            is_finished, is_failure, returned_messages = self.handle_internal_tools(response)
             
             # If we're finished, we can break out of the loop
             if is_finished:

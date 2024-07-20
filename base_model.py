@@ -3,7 +3,9 @@ import sys
 from abilities import get_ability
 from config.secure_store import SecureStore
 from config.config_manager import ConfigManager
-from utils.shell_utils import print_fancy
+from utils.shell_utils import format_markdown_for_terminal, print_fancy, run_command
+from utils.user_input import is_approval, is_denial
+from distutils.util import execute
 
 
 class BaseModel:
@@ -172,3 +174,159 @@ class BaseModel:
         """
         
         raise NotImplementedError("Subclasses should implement this method")
+    
+    def summarize(self, content):
+        """
+        Summarizes a block of potentially long text into a smaller summary using the most efficient model available from a given provider.
+        
+        Args:
+            content (str): The content to summarize
+            
+        Returns:
+            str: The summarized content
+        """
+        
+        raise NotImplementedError("Subclasses should implement this method")
+
+    def handle_internal_tools(self, response, require_mutation_approval=False):
+        """
+        Handles built-in tools for regular Buddy flows.
+        
+        Args:
+            model (BaseModel): The model that the response is from
+            response (dict): The response from the model
+            require_mutation_approval (bool): Whether to require user approval for any commands that can change the system
+            
+        Returns:
+            is_finished (bool): Whether the process is finished
+            is_failure (bool): Whether the process is a failure
+            list: A list of messages to add to the chat context
+        """
+        
+        is_finished = False
+        is_failure = None  # Can't have a failure if we're not finished
+        returned_messages = []
+        
+        # Handle provide_plan
+        provide_plan_id, provide_plan_args, provide_plan_call = self.get_tool_call("provide_plan", response)
+        if provide_plan_id is not None:
+            format_markdown_for_terminal(provide_plan_args['plan'])
+            
+            print_fancy("Does this plan look right? (y/n)", bold=True, color="blue")
+            
+            user_response = input("> ")
+            
+            if is_approval(user_response):
+                content = "The plan was approved by the user"
+            elif is_denial(user_response):
+                content = "The user did not approve the plan"
+            else:
+                content = user_response
+                
+            returned_messages.append(self.make_tool_result(provide_plan_call, content))
+
+        # Handle provide_explanation
+        provide_explanation_id, provide_explanation_args, provide_explanation_call = self.get_tool_call("provide_explanation", response)
+        if provide_explanation_id is not None:
+            format_markdown_for_terminal(f"### {provide_explanation_args['title']}\n{provide_explanation_args['explanation']}")
+            returned_messages.append(self.make_tool_result(provide_explanation_call, "Success"))
+
+        provide_resolution_id, provide_resolution_args, provide_resolution_call = self.get_tool_call("provide_resolution", response)
+        if provide_resolution_id is not None:
+            format_markdown_for_terminal(provide_resolution_args['resolution'])
+            
+            if not provide_resolution_args['recoverable']:
+                is_failure = True
+                is_finished = True
+                
+            returned_messages.append(self.make_tool_result(provide_resolution_call, "Success"))
+           
+        # Handle provide_command 
+        provide_command_id, provide_command_args, provide_command_call = self.get_tool_call("provide_command", response)
+        if provide_command_id is not None:
+            print_fancy(f"Proposed command: {provide_command_args['command']}", bold=True, bg="yellow", color="black")
+            print_fancy("Do you approve? (y/n)", italic=True, color="blue")
+            
+            user_response = input("> ")
+            
+            if is_approval(user_response):
+                content = "The command was approved by the user"
+            elif is_denial(user_response):
+                content = "The user did not approve the command"
+            else:
+                content = user_response
+                
+            returned_messages.append(self.make_tool_result(provide_command_call, "Success"))
+            
+        # Handle execute_command
+        execute_command_id, execute_command_args, execute_command_call = self.get_tool_call("execute_command", response)
+        if execute_command_id is not None:
+            if require_mutation_approval and "dangerous" in execute_command_args and execute_command_args["dangerous"]:
+                is_approved = False
+                print_fancy(f"Proposed command: {execute_command_args['command']}", bold=True, bg="yellow", color="black")
+                
+                while True:
+                    print_fancy("OK to execute? (y/n)", italic=True, color="blue")
+                    user_approval_input = input("> ")
+                    
+                    if is_approval(user_approval_input):
+                        is_approved = True
+                        
+                        break
+                    
+                    elif is_denial(user_approval_input):
+                        print_fancy("Please provide reasoning or provide other instructions", italic=True, color="blue")
+                        
+                        user_feedback = input("> ")
+                        
+                        returned_messages.append(self.make_tool_result(execute_command_call, f"Command execution denied by user with reasoning: {user_feedback}"))
+                        break
+            
+            if is_approved or not require_mutation_approval:
+                stdout, stderr = run_command(execute_command_args['command'])
+                
+                if len(stdout) > 1000:
+                    stdout = self.summarize(stdout)
+                
+                if len(stderr) > 1000:
+                    stderr = self.summarize(stderr)
+                    
+                returned_messages.append(self.make_tool_result(execute_command_call, f"Execution complete\n\n### Stdout Summary\n{stdout}\n\n### Stderr Summary\n{stderr}"))
+               
+        # Handle end_process 
+        end_process_id, end_process_args, end_process_call = self.get_tool_call("end_process", response)
+        if end_process_id is not None:
+            is_finished = True
+            if not end_process_args['success']:
+                is_failure = True
+                
+            if end_process_args['summary']:
+                format_markdown_for_terminal(end_process_args['summary'])
+            
+            returned_messages.append(self.make_tool_result(end_process_call, "Success"))
+            
+        # Handle ability actions
+        for ability_action_name in self.ability_actions:
+            ability_action_call_id, ability_action_args, ability_action_call = self.get_tool_call(ability_action_name, response)
+            if ability_action_call_id is not None:
+                ability_name = ability_action_name.split("_")[0]
+                tool_name = ability_action_name.split(ability_name + "_")[1]
+                
+                ability = get_ability(ability_name)
+                
+                if ability is None:
+                    returned_messages.append({
+                        "role": "tool",
+                        "tool_call_id": ability_action_call_id,
+                        "name": tool_name,
+                        "content": "No such ability. Please try again with a different tool"
+                    })
+                    continue
+                
+                print_fancy(f"Using the {ability_name} ability...", italic=True, color="blue")
+                
+                tool_output = ability.call_action(self, tool_name, ability_action_args)
+                
+                returned_messages.append(self.make_tool_result(ability_action_call, tool_output if tool_output else "Success"))
+
+        return is_finished, is_failure, returned_messages

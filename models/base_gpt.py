@@ -1,6 +1,7 @@
 import json
 from openai import OpenAI
 from base_model import BaseModel
+from config.secure_store import SecureStore
 
 
 class BaseGPT(BaseModel):
@@ -143,3 +144,36 @@ class BaseGPT(BaseModel):
             )
             
         return tools
+
+    def summarize(self, content):
+        """
+        Summarizes a block of potentially long text into a smaller summary.
+        
+        Args:
+            content (str): The content to summarize
+            
+        Returns:
+            str: The summarized content
+        """
+        
+        secure_store = SecureStore()
+        api_key = secure_store.get_api_key("gpt-4o")
+        client = OpenAI(api_key=api_key)
+        
+        messages = [
+            {
+                "role": "system",
+                "content": "You will condense the user's message into a concise, informative summary that captures meaningful details and context. You will attempt to keep the summary as short as possible while maintaining the necessary information it conveys"
+            },
+            {
+                "role": "user",
+                "content": content
+            }
+        ]
+        
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages,
+            temperature=0.0)
+        
+        return response.choices[0].message.content.strip()
