@@ -1,4 +1,5 @@
 openai
 selenium
+undetected-chromedriver
 rich
 requests

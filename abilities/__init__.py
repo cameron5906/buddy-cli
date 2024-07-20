@@ -9,6 +9,7 @@ ABILITIES: Dict[str, Type['BaseAbility']] = {}
 def ability(name, description, argument_schema):
     """
     Decorator to register an ability with the system.
+    This decoration will automatically register all action handlers on the class.
     
     Args:
         name (str): The name of the ability
@@ -16,14 +17,68 @@ def ability(name, description, argument_schema):
         argument_schema (dict): The parameter schema for the ability when called (name: type)
     """
 
-    def decorator(cls):
-        if issubclass(cls, BaseAbility):
-            ABILITIES[name] = cls
-            cls.description = description
-            cls.argument_schema = argument_schema
-        else:
-            raise TypeError("Ability must inherit from BaseAbility")
+    def decorator(cls: Type['BaseAbility']):
+        if not issubclass(cls, BaseAbility):
+            raise TypeError("Class must inherit from BaseAbility")
+
+        # Add metadata to the class
+        cls.ability_name = name
+        cls.description = description
+        cls.argument_schema = argument_schema
+
+        # Automatically discovering and registering actions defined on the class
+        cls.actions = []
+        cls.action_handlers = {}
+        
+        for attr_name in dir(cls):
+            attr = getattr(cls, attr_name)
+            if hasattr(attr, '_action_name'):  # Check if this is an action
+                cls.actions.append({
+                    "name": f"{name}_{attr._action_name}",
+                    "description": attr._action_description,
+                    "argument_schema": attr._action_argument_schema,
+                    "required_arguments": attr._action_required_arguments
+                })
+                
+                cls.action_handlers[attr._action_name] = attr._handler
+
+        ABILITIES[name] = cls
+
         return cls
+
+    return decorator
+
+
+def ability_action(name, description, argument_schema, required_arguments=None):
+    """
+    Used to decorate methods on an ability to register them as actions to be called by the model.
+    
+    Args:
+        name (str): The name of the action
+        description (str): A description of the action
+        argument_schema (dict): The parameter schema for the action when called (name: type)
+        required_arguments (list): A list of required arguments for the action
+    """
+
+    def decorator(func):
+        # Attach metadata directly to the function
+        setattr(func, '_action_name', name)
+        setattr(func, '_action_description', description)
+        setattr(func, '_action_argument_schema', argument_schema)
+        setattr(func, '_action_required_arguments', required_arguments or [])
+
+        # Define a wrapper that acts as the decorated function
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+        
+        # Preserve metadata through the wrapper
+        wrapper._action_name = func._action_name
+        wrapper._action_description = func._action_description
+        wrapper._action_argument_schema = func._action_argument_schema
+        wrapper._action_required_arguments = func._action_required_arguments
+        wrapper._handler = func
+        
+        return wrapper
 
     return decorator
 

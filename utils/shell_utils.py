@@ -25,12 +25,14 @@ def format_markdown_for_terminal(markdown_text):
     console.print(Panel(md, expand=True, border_style="bold blue"))
 
 
-def run_command(command):
+def run_command(command, superuser=False, display_output=True):
     """
     Runs a shell command, capturing the stdout and stderr and printing them to the terminal with styling.
     
     Args:
         command (str): The shell command to run
+        superuser (bool): Whether to run the command as a superuser
+        display_output (bool): Whether to display the output of the command in real-time
         
     Returns:
         tuple: A tuple containing the stdout and stderr of the command
@@ -38,19 +40,26 @@ def run_command(command):
 
     full_stdout = []
     full_stderr = []
+    os_type = platform.system()
+    current_user = getpass.getuser()
+    
+    if superuser and os_type != "Windows" and not command.startswith("sudo") and current_user != "root":
+        command = f"sudo {command}"
     
     try:
         process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
         stdout_iter = iter(process.stdout.readline, '')
         stderr_iter = iter(process.stderr.readline, '')
-
+            
         for stdout_line in stdout_iter:
-            print_fancy(stdout_line.strip(), italic=True, color="light_gray")
+            if display_output:
+                print_fancy(stdout_line.strip(), italic=True, color="light_gray")
             full_stdout.append(stdout_line)
         
         for stderr_line in stderr_iter:
-            print_fancy(stderr_line.strip(), italic=True, color="red")
+            if display_output:
+                print_fancy(stderr_line.strip(), italic=True, color="red")
             full_stderr.append(stderr_line)
 
         process.stdout.close()
@@ -133,3 +142,76 @@ def get_system_context():
     )
 
     return context
+
+
+def is_included_in_path(dirpath):
+    """
+    Checks if a directory is included in the PATH environment variable.
+
+    Args:
+        dirpath (str): The directory to check.
+
+    Returns:
+        bool: True if the directory is in the PATH, False otherwise.
+    """
+    path_separator = ";" if os.name == "nt" else ":"
+    path_dirs = os.environ["PATH"].split(path_separator)
+    return dirpath in path_dirs
+
+
+def add_to_path(dirpath):
+    """
+    Adds a directory to the PATH environment variable if it's not already included.
+
+    Args:
+        dirpath (str): The directory to add.
+
+    Returns:
+        bool: True if the directory was added, False if it was already in the PATH.
+    """
+    if not is_included_in_path(dirpath):
+        if platform.system() == "Windows":
+            # Update PATH permanently for the user
+            path_dirs = os.environ["PATH"].split(";")
+            path_dirs.append(dirpath)
+            new_path = ";".join(path_dirs)
+            subprocess.run(['setx', 'PATH', new_path], shell=True)
+
+            # Update PATH for the current session
+            os.environ["PATH"] = new_path
+        else:
+            # Append to the shell configuration file
+            shell_config = os.path.expanduser("~/.bashrc")  # Change to ~/.zshrc if using zsh
+            with open(shell_config, "a") as f:
+                f.write(f'\nexport PATH="$PATH:{dirpath}"\n')
+
+            # Create a temporary script to source the shell configuration
+            script_path = create_shell_script(shell_config)
+            subprocess.run([script_path], shell=True)
+
+            # Clean up the temporary script
+            os.remove(script_path)
+
+        return True
+    return False
+
+
+def create_shell_script(shell_config):
+    """
+    Creates a temporary shell script to source the updated shell configuration.
+
+    Args:
+        shell_config (str): The path to the shell configuration file.
+
+    Returns:
+        str: The path to the created shell script.
+    """
+    script_content = f"""
+    #!/bin/bash
+    source {shell_config}
+    """
+    script_path = "/tmp/update_path.sh"
+    with open(script_path, "w") as script_file:
+        script_file.write(script_content)
+    os.chmod(script_path, 0o755)  # Make the script executable
+    return script_path

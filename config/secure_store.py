@@ -56,6 +56,6 @@ class SecureStore:
         """
         
         if service not in self.api_keys:
-            raise ValueError(f"No API key found for service: {service}")
+            return None
         
         return self.api_keys.get(service)

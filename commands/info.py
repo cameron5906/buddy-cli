@@ -1,4 +1,4 @@
-import initialize_modules
+import initialize_models
 from abilities import ABILITIES
 from models import MODELS
 from config.config_manager import ConfigManager

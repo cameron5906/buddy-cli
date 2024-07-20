@@ -1,5 +1,6 @@
 import sys
-import initialize_modules
+import initialize_models
+import initialize_abilities
 from abilities import ABILITIES, get_ability
 from models import MODELS
 from config.config_manager import ConfigManager

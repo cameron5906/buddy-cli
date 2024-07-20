@@ -1,57 +1,18 @@
+import initialize_abilities
 from openai import OpenAI
 import json
 from config.secure_store import SecureStore
 from utils.shell_utils import format_markdown_for_terminal, print_fancy, run_command
 from utils.user_input import is_approval, is_denial
+from abilities import get_ability
 
 
-def make_tool_definition(name, description, parameterDict=None, required=None):
-    """
-    Creates an OpenAI ChatML tool definition object based on provided metadata.
-    
-    Args:
-        name (str): The name of the tool
-        description (str): A description of the tool
-        parameterDict (dict): A dictionary of parameters for the tool (key: parameter name, value: parameter type)
-        required (list): A list of required parameters
-        
-    Returns:
-        dict: The tool definition object
-    """
-    
-    if parameterDict is None:
-        parameterDict = {"type": "object", "properties": {}}
-    if required is None:
-        required = []
-
-    properties = {}
-    for param, details in parameterDict.items():
-        if isinstance(details, dict):
-            properties[param] = details
-        else:
-            properties[param] = {"type": details}
-            if param in required:
-                properties[param]["description"] = f"{param} is required"
-
-    return {
-        "type": "function",
-        "function": {
-            "name": name,
-            "description": description,
-            "parameters": {
-                "type": "object",
-                "properties": properties,
-                "required": required
-            }
-        }
-    }
-
-
-def process_chat_response(response, require_mutation_approval=False):
+def process_chat_response(model, response, tools=[], require_mutation_approval=False):
     """
     Processes an OpenAI ChatML response, executing any tools and returning the results and status.
     
     Args:
+        model (BaseModel): The model that called the response
         response (object): The response object from OpenAI
         require_mutation_approval (bool): Whether to require user approval for any mutation commands
         
@@ -196,12 +157,39 @@ def process_chat_response(response, require_mutation_approval=False):
                 })
                 
             else:
-                returned_messages.append({
-                    "role": "tool",
-                    "tool_call_id": tool_call.id,
-                    "name": tool_name,
-                    "content": "The tool was not recognized"
-                })
+                # Check if there's a _
+                if "_" in tool_name:
+                    ability_name = tool_name.split("_")[0]
+                    tool_name = tool_name.split(ability_name + "_")[1]
+                    
+                    ability = get_ability(ability_name)
+                    
+                    if ability is None:
+                        returned_messages.append({
+                            "role": "tool",
+                            "tool_call_id": tool_call.id,
+                            "name": tool_name,
+                            "content": "No such ability. Please try again with a different tool"
+                        })
+                        continue
+                    
+                    print_fancy(f"Using the {ability_name} ability...", italic=True, color="blue")
+                    
+                    tool_output = ability.call_action(model, tool_name, tool_args)
+                    
+                    returned_messages.append({
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "name": tool_name,
+                        "content": tool_output if tool_output else "Success"
+                    })
+                else:
+                    returned_messages.append({
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "name": tool_name,
+                        "content": "The tool was not recognized"
+                    })
                 
     if len(returned_messages) == 0:
         returned_messages.append({
