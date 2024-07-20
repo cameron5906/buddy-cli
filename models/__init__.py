@@ -27,7 +27,7 @@ def model(name):
 
 def discover_models():
     for file in os.listdir(os.path.dirname(__file__)):
-        if file.endswith(".py") and file != "__init__.py":
+        if file.endswith(".py") and file != "__init__.py" and not file.startswith("base_"):
             module_name = f"models.{file[:-3]}"
             importlib.import_module(module_name)
 

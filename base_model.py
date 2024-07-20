@@ -90,13 +90,13 @@ You will provide a detailed explanation of a shell command provided to you by th
         Initializes the model by loading the API key from the secure store.
         """
         
+        self.model_name = getattr(self.__class__, 'model_name', None)
         self.__load_key()    
         self.__load_abilities()
             
     def __load_key(self):
         secure_store = SecureStore()
-        model_name = getattr(self.__class__, 'model_name', None)
-        self.api_key = secure_store.get_api_key(model_name)
+        self.api_key = secure_store.get_api_key(self.model_name)
         
         if self.api_key is None:
             print_fancy("You haven't provided an API key for this model. See 'buddy info' for more information", bold=True, color="red")
