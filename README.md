@@ -92,30 +92,38 @@ For example:
 
 ### Using Docker for Testing
 
-If you want to play around with Buddy CLI without fear of something going wrong _(for it to gain your trust)_ you can run it in an isolated container based on Ubuntu 20.04.
+If you want to play around with Buddy CLI without fear of something going wrong _(for it to gain your trust)_ you can run it in an isolated container environment based.
 
-1. Open the `sandbox` directory
+#### Operating Systems
 
-   ```bash
-   cd sandbox
-   ```
+The following base images can be used to test with:
 
-2. Build and run the image
+- Ubuntu
+- Debian
+- CentOS
+- Alpine
 
-   ```bash
-   // On Windows
-   start.bat
-   
-   // On Linux or Mac
-   chown +x ./start.sh
-   ./start.sh
-   ```
+#### Running the Sandbox
 
-Within the Docker container, you can run Buddy directly:
+You can run the `start_sandbox.py` script in the `sandbox` directory to get an environment up and running.
 
-```bash
-buddy what time is it?
+There are several options you can use along with it:
+
+```txt
+Defaults:
+    os: ubuntu
+    root: False
+
+Options:
+    --update: Update the existing sandbox environment with the latest files, don't rebuild the environment
+    --open: Attach to the existing sandbox container without rebuilding the environment
+    --os: Specify the operating system environment to use
+    --root: Use the root variant of the environment
 ```
+
+You can use `python start_sandbox.py --help` for the full output.
+
+
 
 ## 📚 Commands
 
