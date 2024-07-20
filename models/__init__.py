@@ -1,23 +1,37 @@
+from enum import Enum
 import os
 import importlib
 from typing import Type, Dict
 from base_model import BaseModel
 
+
+class ModelProvider(Enum):
+    OPEN_AI = "openai"
+    GOOGLE = "google"
+    ANTHROPIC = "anthropic"
+
+    
 MODELS: Dict[str, Type['BaseModel']] = {}
 
 
-def model(name):
+def model(provider: ModelProvider, name, context_size, vision_capability=False):
     """
     Decorator to register a model with the system.
     
     Args:
+        provider (ModelProvider): The provider (company) of the model
         name (str): The name of the model
+        context_size (int): The size of the context window
+        vision_capability (bool): Whether the model has vision capability
     """
 
     def decorator(cls):
         if issubclass(cls, BaseModel):
             MODELS[name] = cls
+            cls.provider = provider
             cls.model_name = name
+            cls.context_size = context_size
+            cls.vision_capability = vision_capability
         else:
             raise TypeError("Model must inherit from BaseModel")
         return cls

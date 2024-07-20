@@ -1,10 +1,10 @@
 from models.base_gpt import BaseGPT
-from models import model
+from models import ModelProvider, model
 from utils.shell_utils import print_fancy, get_system_context, \
     format_markdown_for_terminal
 
 
-@model("gpt-4o")
+@model(ModelProvider.OPEN_AI, "gpt-4o", 128000, vision_capability=True)
 class GPT4OModel(BaseGPT):
     """
     A class to interact with the GPT-4o model from OpenAI
