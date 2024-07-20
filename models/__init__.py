@@ -14,7 +14,7 @@ class ModelProvider(Enum):
 MODELS: Dict[str, Type['BaseModel']] = {}
 
 
-def model(provider: ModelProvider, name, context_size, vision_capability=False):
+def model(provider: ModelProvider, name, context_size, cost_per_thousand_input_tokens, vision_capability=False):
     """
     Decorator to register a model with the system.
     
@@ -22,6 +22,7 @@ def model(provider: ModelProvider, name, context_size, vision_capability=False):
         provider (ModelProvider): The provider (company) of the model
         name (str): The name of the model
         context_size (int): The size of the context window
+        cost_per_thousand_input_tokens (float): The cost per thousand input tokens
         vision_capability (bool): Whether the model has vision capability
     """
 
@@ -31,6 +32,7 @@ def model(provider: ModelProvider, name, context_size, vision_capability=False):
             cls.provider = provider
             cls.model_name = name
             cls.context_size = context_size
+            cls.cost_per_thousand_input_tokens = cost_per_thousand_input_tokens
             cls.vision_capability = vision_capability
         else:
             raise TypeError("Model must inherit from BaseModel")
@@ -63,3 +65,35 @@ def get_model(name, *args, **kwargs):
         return None
     
     return model_cls(*args, **kwargs)
+
+
+def find_models(provider: ModelProvider, vision_capability=None, min_context=None, max_cost=None):
+    """
+    Find models based on provider, vision capability, context size, and cost.
+    
+    Args:
+        provider (ModelProvider): The provider to filter by
+        vision_capability (bool): Whether the model has vision capability
+        min_context (int): The minimum context size
+        max_cost (float): The maximum cost per thousand input tokens
+        
+    Returns:
+        list (str): A list of model names that match the criteria
+    """
+    
+    return [
+        name for name, cls in MODELS.items() 
+        if cls.provider == provider 
+        and (
+            vision_capability is None 
+            or cls.vision_capability == vision_capability
+        )
+        and (
+            min_context is None 
+            or cls.context_size >= min_context
+        )
+        and (
+            max_cost is None 
+            or cls.cost_per_thousand_input_tokens <= max_cost
+        )
+    ]
