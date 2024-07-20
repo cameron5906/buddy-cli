@@ -5,7 +5,6 @@ import os
 # Add the current directory to the Python path to ensure modules can be found
 sys.path.append(os.path.dirname(__file__))
 
-import initialize_modules
 from commands.use import use
 from commands.remove import remove
 from commands.info import display_info
