@@ -218,13 +218,13 @@ The user will only be able to see what you say through the tools that you call, 
             response = self.run_inference(
                 messages=messages,
                 tools=[
+                    *ability_tools,
                     self.make_tool(
                         "provide_plan",
                         "Provides a plan to the user for accomplishing the task. This will be a numbered list with titles of each step and no other information",
                         {"plan": "string"},
                         ["plan"]
                     ),
-                    *ability_tools,
                     self.make_tool(
                         "provide_explanation",
                         "Provides an explanation for a step to the user in an informative manner. Commands should be explained in a way that can be educational for the user. The title should be the step number or name",
