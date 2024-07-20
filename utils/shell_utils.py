@@ -32,6 +32,7 @@ def run_command(command, superuser=False, display_output=True):
     Args:
         command (str): The shell command to run
         superuser (bool): Whether to run the command as a superuser
+        display_output (bool): Whether to display the output of the command in real-time
         
     Returns:
         tuple: A tuple containing the stdout and stderr of the command
