@@ -1,10 +1,10 @@
-from models.base_gpt import BaseGPT
 from models import ModelProvider, model
+from models.openai.base_gpt import BaseGPT
 from utils.shell_utils import print_fancy, get_system_context, \
     format_markdown_for_terminal
 
 
-@model(ModelProvider.OPEN_AI, "gpt-4o", 128000, vision_capability=True)
+@model(ModelProvider.OPEN_AI, "gpt-4o", context_size=128000, cost_per_thousand_input_tokens=0.0050, vision_capability=True)
 class GPT4OModel(BaseGPT):
     """
     A class to interact with the GPT-4o model from OpenAI
@@ -70,6 +70,8 @@ If you successfully complete the task, you will inform the user that the task wa
                     )
                 ]
             )
+            
+            messages.append(response.choices[0].message)
             
             is_finished, is_failure, returned_messages = self.handle_internal_tools(response)
             
@@ -146,6 +148,8 @@ If the user declines any of your commands, you will not execute them and you wil
                     )
                 ]
             )
+            
+            messages.append(response.choices[0].message)
             
             is_finished, is_failure, returned_messages = self.handle_internal_tools(response, require_mutation_approval=True)
             
@@ -255,6 +259,8 @@ The user will only be able to see what you say through the tools that you call, 
                     ),
                 ]
             )
+            
+            messages.append(response.choices[0].message)
             
             is_finished, is_failure, returned_messages = self.handle_internal_tools(response)
             

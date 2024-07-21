@@ -42,10 +42,23 @@ def model(provider: ModelProvider, name, context_size, cost_per_thousand_input_t
 
 
 def discover_models():
-    for file in os.listdir(os.path.dirname(__file__)):
-        if file.endswith(".py") and file != "__init__.py" and not file.startswith("base_"):
-            module_name = f"models.{file[:-3]}"
-            importlib.import_module(module_name)
+    # Get directories in this file's directory
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    subdirs = [d for d in os.listdir(current_dir) if os.path.isdir(os.path.join(current_dir, d))]
+    
+    # Iterate over each directory
+    for subdir in subdirs:
+        # Import the module
+        module = importlib.import_module(f"{__name__}.{subdir}")
+        
+        # Iterate over directory contents to import each model
+        for name in dir(module):
+            if "__" in name or name.startswith("base_"):
+                continue
+            
+            obj = getattr(module, name)
+            if isinstance(obj, type) and issubclass(obj, BaseModel):
+                importlib.import_module(f"{__name__}.{subdir}.{name}")
 
 
 def get_model(name, *args, **kwargs):

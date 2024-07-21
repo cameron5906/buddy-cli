@@ -5,7 +5,6 @@ from config.secure_store import SecureStore
 from config.config_manager import ConfigManager
 from utils.shell_utils import format_markdown_for_terminal, print_fancy, run_command
 from utils.user_input import is_approval, is_denial
-from distutils.util import execute
 
 
 class BaseModel:
@@ -281,6 +280,8 @@ class BaseModel:
                         
                         returned_messages.append(self.make_tool_result(execute_command_call, f"Command execution denied by user with reasoning: {user_feedback}"))
                         break
+            else:
+                is_approved = True
             
             if is_approved or not require_mutation_approval:
                 stdout, stderr = run_command(execute_command_args['command'])
