@@ -29,7 +29,7 @@ class ConfigManager:
             with open(CONFIG_FILE, 'r') as f:
                 self.config = json.load(f)
         else:
-            self.config = {"current_model": "", "abilities": []}
+            self.config = {"current_model_provider": "", "abilities": []}
             self.save_config()
 
     def save_config(self):
@@ -46,10 +46,10 @@ class ConfigManager:
         Sets the current model provider to use for Buddy commands and saves the configuration.
         
         Args:
-            model_name (str): The name of the model provider to use
+            provider_name (str): The name of the model provider to use
         """
         
-        self.config["current_model"] = provider_name
+        self.config["current_model_provider"] = provider_name
         self.save_config()
         
     def get_current_model_provider(self):
@@ -57,7 +57,7 @@ class ConfigManager:
         Retrieves the current model provider being used by Buddy.
         """
         
-        return self.config.get("current_model", None)
+        return self.config.get("current_model_provider", None)
 
     def add_ability(self, ability):
         """
