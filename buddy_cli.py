@@ -23,7 +23,7 @@ def main():
 
     # Check for non-intelligent commands
     if command == "info":
-        display_info()
+        display_info(sys.argv[2:])
         sys.exit(0)
         
     elif command == "use":
