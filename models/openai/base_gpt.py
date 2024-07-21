@@ -1,7 +1,6 @@
 import json
 from openai import OpenAI
-from base_model import BaseModel
-from model_factory import ModelFactory
+from models.base_model import BaseModel
 
 
 class BaseGPT(BaseModel):
@@ -157,6 +156,7 @@ class BaseGPT(BaseModel):
             str: The summarized content
         """
         
+        from models.base_model_factory import ModelFactory
         model = ModelFactory().get_model(lowest_cost=True)
         
         messages = [

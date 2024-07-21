@@ -2,7 +2,7 @@ from enum import Enum
 import os
 import importlib
 from typing import Type, Dict
-from base_model import BaseModel
+from models.base_model import BaseModel
 
 
 class ModelProvider(Enum):
@@ -49,17 +49,12 @@ def discover_models():
     
     # Iterate over each directory
     for subdir in subdirs:
-        # Import the module
-        module = importlib.import_module(f"{__name__}.{subdir}")
+        # Make sure its a directory and not a file
+        if not os.path.isdir(os.path.join(current_dir, subdir)):
+            continue
         
-        # Iterate over directory contents to import each model
-        for name in dir(module):
-            if "__" in name or name.startswith("base_"):
-                continue
-            
-            obj = getattr(module, name)
-            if isinstance(obj, type) and issubclass(obj, BaseModel):
-                importlib.import_module(f"{__name__}.{subdir}.{name}")
+        # Import the module
+        importlib.import_module(f"{__name__}.{subdir}")
 
 
 def create_model(name, *args, **kwargs):
@@ -97,9 +92,10 @@ def find_models(provider: ModelProvider, vision_capability=None, min_context=Non
     
     model_names = [
         name for name, cls in MODELS.items() 
-        if cls.provider == provider 
+        if cls.provider.value == provider
         and (
             vision_capability is None 
+            or vision_capability is False
             or cls.vision_capability == vision_capability
         )
         and (
@@ -108,7 +104,17 @@ def find_models(provider: ModelProvider, vision_capability=None, min_context=Non
         )
     ]
     
-    if lowest_cost:
-        model_names.sort(key=lambda name: MODELS[name].cost_per_thousand_input_tokens)
-        
-    return model_names
+    # Define a sorting algorithm that will sort by cost, then by vision capability, then by vision cost
+    # The benefit of this is that we can sort by cost, but still have vision models first if vision is required
+    # If vision is not required, we might also still consider vision models if they are cheaper than non-vision models
+    def sort_weights(name):
+        cls = MODELS[name]
+        cost = cls.cost if lowest_cost else 0
+        vision_sort = 0 if cls.vision_capability else 1  # Non-vision models first
+        vision_cost = cls.cost_per_thousand_input_tokens if vision_capability in [None, False] and cls.vision_capability else 0
+        return (cost, vision_sort, vision_cost)
+    
+    # Sort the list using the custom key
+    sorted_model_names = sorted(model_names, key=sort_weights)
+    
+    return sorted_model_names

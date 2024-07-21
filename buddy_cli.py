@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(__file__))
 from commands.use import use
 from commands.remove import remove
 from commands.info import display_info
-from model_factory import ModelFactory
+from models.base_model_factory import ModelFactory
 
 model_factory = ModelFactory()
 

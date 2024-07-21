@@ -90,6 +90,10 @@ def discover_abilities():
     
     # Iterate over each directory
     for subdir in subdirs:
+        # Make sure its a directory and not a file
+        if not os.path.isdir(os.path.join(current_dir, subdir)):
+            continue
+        
         # Import the module
         importlib.import_module(f"{__name__}.{subdir}")
 

@@ -1,1 +1,1 @@
-import models.openai.gpt4o
+import models.openai.gpt_4o

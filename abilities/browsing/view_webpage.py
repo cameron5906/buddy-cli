@@ -1,5 +1,5 @@
 from abilities.browsing.utils import get_driver, is_scrolled_to_bottom, scroll_page
-from model_factory import ModelFactory
+from models.base_model_factory import ModelFactory
 from utils.shell_utils import print_fancy
 
 
