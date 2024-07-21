@@ -20,7 +20,7 @@ class BaseModel:
             
     def __load_key(self):
         secure_store = SecureStore()
-        self.api_key = secure_store.get_api_key(self.model_name)
+        self.api_key = secure_store.get_api_key(self.provider.value)
         
         if self.api_key is None:
             print_fancy("You haven't provided an API key for this model. See 'buddy info' for more information", bold=True, color="red")
