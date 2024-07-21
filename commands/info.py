@@ -12,7 +12,7 @@ def display_info():
     config = ConfigManager()
 
     all_models = [name for name, _ in MODELS.items()]    
-    current_model = config.get_current_model()
+    current_model = config.get_current_model_provider()
 
     enabled_abilities = config.get_abilities()
     all_abilities = [name for name, _ in ABILITIES.items()]

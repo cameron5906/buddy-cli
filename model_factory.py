@@ -28,7 +28,7 @@ class ModelFactory:
             ValueError: If the current model is not recognized
         """
                 
-        model_name = self.config.get_current_model()
+        model_name = self.config.get_current_model_provider()
         
         model = get_model(model_name)
         if model is None:

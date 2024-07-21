@@ -10,8 +10,9 @@ class ModelProvider(Enum):
     GOOGLE = "google"
     ANTHROPIC = "anthropic"
 
-    
+
 MODELS: Dict[str, Type['BaseModel']] = {}
+PROVIDER_NAMES = [provider.value for provider in ModelProvider]
 
 
 def model(provider: ModelProvider, name, context_size, cost_per_thousand_input_tokens, vision_capability=False):
