@@ -62,7 +62,7 @@ def discover_models():
                 importlib.import_module(f"{__name__}.{subdir}.{name}")
 
 
-def get_model(name, *args, **kwargs):
+def create_model(name, *args, **kwargs):
     """
     Get an instance of a model by name
     

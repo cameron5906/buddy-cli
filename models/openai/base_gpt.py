@@ -1,7 +1,7 @@
 import json
 from openai import OpenAI
 from base_model import BaseModel
-from config.secure_store import SecureStore
+from model_factory import ModelFactory
 
 
 class BaseGPT(BaseModel):
@@ -22,13 +22,14 @@ class BaseGPT(BaseModel):
         super().__init__()
         self.client = OpenAI(api_key=self.api_key)
 
-    def run_inference(self, messages, tools):
+    def run_inference(self, messages, tools=[], temperature=0.1):
         """
         Method to run inference on a list of messages with a list of tools
         
         Args:
             messages (list): List of messages to run inference on
             tools (list): List of tools to use for inference
+            temperature (float): The temperature for the model
         """
         
         response = self.client.chat.completions.create(
@@ -36,7 +37,7 @@ class BaseGPT(BaseModel):
             messages=messages,
             tools=tools,
             tool_choice="auto",
-            temperature=0.1,
+            temperature=temperature,
             parallel_tool_calls=False
         )
         
@@ -156,9 +157,7 @@ class BaseGPT(BaseModel):
             str: The summarized content
         """
         
-        secure_store = SecureStore()
-        api_key = secure_store.get_api_key("gpt-4o")
-        client = OpenAI(api_key=api_key)
+        model = ModelFactory().get_model(lowest_cost=True)
         
         messages = [
             {
@@ -171,9 +170,9 @@ class BaseGPT(BaseModel):
             }
         ]
         
-        response = client.chat.completions.create(
-            model="gpt-4o",
+        response = model.run_inference(
             messages=messages,
-            temperature=0.0)
+            temperature=0.0
+        )
         
         return response.choices[0].message.content.strip()

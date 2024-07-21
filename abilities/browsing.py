@@ -1,4 +1,5 @@
 import os
+from model_factory import ModelFactory
 from abilities import ability, ability_action
 from base_ability import BaseAbility
 from utils.system_packages import is_installed, update_packages, install_package, get_package_manager, PackageManager
@@ -33,7 +34,7 @@ class Browsing(BaseAbility):
         pass
     
     @ability_action("view_webpage_url", "Opens a webpage URL to seek information using the instructions provided", {"url": "string", "instructions": "string"}, ["url", "instructions"])
-    def view_webpage(self, model, args):
+    def view_webpage(self, args):
         """
         Allows Buddy to view a webpage using a web browser with vision capabilities.
         Buddy is provided with the following tools:
@@ -41,7 +42,6 @@ class Browsing(BaseAbility):
             add_note: Allows Buddy to add a note to the findings
         
         Args:
-            model (BaseModel): The model that is calling the action
             args (dict): The arguments for the search from the model
                 url (str): The URL of the webpage to view
                 instructions (str): The instructions for what to do on the page
@@ -49,6 +49,8 @@ class Browsing(BaseAbility):
         Returns:
             str: An explanation of the findings
         """
+        
+        model = ModelFactory().get_model(require_vision=True)
         
         url = args["url"]
         instructions = args["instructions"]
@@ -138,14 +140,13 @@ Obey the following guidelines:
         return "\\n\\n".join(result_segments)
     
     @ability_action("google_search_get_url", "Search Google for web results", {"query": {"type": "string", "description": "A search query. Do NOT use a URL for a search"}, "instructions": "string"}, ["query", "instructions"])
-    def perform_google_search(self, model, args):
+    def perform_google_search(self, args):
         """
         Allows Buddy to perform a Google search using a web browser with vision capabilities.
         Buddy is provided with the following tools:
             get_link_url: Retrieves the URL by using the title of the search result
         
         Args:
-            model (BaseModel): The model that is calling the action
             args (dict): The arguments for the search from the model
                 query (str): The search query
                 instructions (str): The instructions for the search
@@ -153,6 +154,8 @@ Obey the following guidelines:
         Returns:
             str | None: The URL of the first search result, or None if no matching results were found
         """
+        
+        model = ModelFactory().get_model(require_vision=True)
         
         instructions = args["instructions"]
         query = args["query"]

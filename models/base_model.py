@@ -116,13 +116,14 @@ class BaseModel:
         
         return base_prompt
     
-    def run_inference(self, messages, tools):
+    def run_inference(self, messages, tools=[], temperature=0.0):
         """
         Runs inference on the messages and tools provided.
         
         Args:
             messages (list): The messages to process
             tools (list): The tools to process
+            temperature (float): The temperature to use for the model
             
         Returns:
             tuple: A tuple containing a boolean indicating if the process is finished, a boolean indicating if the process failed, and a list of messages to return

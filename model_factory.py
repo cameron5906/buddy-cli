@@ -1,6 +1,6 @@
 import initialize_models
 import sys
-from models import get_model, find_models
+from models import create_model, find_models
 from config.config_manager import ConfigManager
 from utils.shell_utils import print_fancy
 
@@ -45,6 +45,6 @@ class ModelFactory:
             sys.exit(1)
 
         # Pick the first one
-        model = get_model(applicable_models[0])        
+        model = create_model(applicable_models[0])        
         
         return model        

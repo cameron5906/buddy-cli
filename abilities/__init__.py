@@ -1,7 +1,7 @@
 import os
 import importlib
 from typing import Type, Dict
-from base_ability import BaseAbility
+from abilities.base_ability import BaseAbility
 
 ABILITIES: Dict[str, Type['BaseAbility']] = {}
 
@@ -85,7 +85,7 @@ def ability_action(name, description, argument_schema, required_arguments=None):
 
 def discover_abilities():
     for file in os.listdir(os.path.dirname(__file__)):
-        if file.endswith(".py") and file != "__init__.py":
+        if file.endswith(".py") and file != "__init__.py" and not file.startswith("base_"):
             module_name = f"abilities.{file[:-3]}"
             importlib.import_module(module_name)
 
