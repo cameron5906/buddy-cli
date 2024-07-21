@@ -84,10 +84,14 @@ def ability_action(name, description, argument_schema, required_arguments=None):
 
 
 def discover_abilities():
-    for file in os.listdir(os.path.dirname(__file__)):
-        if file.endswith(".py") and file != "__init__.py" and not file.startswith("base_"):
-            module_name = f"abilities.{file[:-3]}"
-            importlib.import_module(module_name)
+    # Get directories in this file's directory
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    subdirs = [d for d in os.listdir(current_dir) if os.path.isdir(os.path.join(current_dir, d))]
+    
+    # Iterate over each directory
+    for subdir in subdirs:
+        # Import the module
+        importlib.import_module(f"{__name__}.{subdir}")
 
 
 def get_ability(name, *args, **kwargs):
