@@ -36,7 +36,7 @@ def main():
     
     # Load the configured model
     
-    model = model_factory.get_model()
+    model = model_factory.get_model(require_vision=False)
     
     if command == "help":
         if len(sys.argv) < 3:

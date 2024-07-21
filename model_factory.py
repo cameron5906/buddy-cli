@@ -1,6 +1,6 @@
 import initialize_models
 import sys
-from models import get_model
+from models import get_model, find_models
 from config.config_manager import ConfigManager
 from utils.shell_utils import print_fancy
 
@@ -20,19 +20,31 @@ class ModelFactory:
         
         self.config = ConfigManager()
 
-    def get_model(self):
+    def get_model(self, require_vision=None, lowest_cost=None):
         """
         Retrieves the name of the current model from the configuration and returns an instance of that model.
+        
+        Args:
+            require_vision (bool): Whether the model must have vision capabilities
+            lowest_cost (bool): Whether to return the lowest cost model
         
         Raises:
             ValueError: If the current model is not recognized
         """
                 
-        model_name = self.config.get_current_model_provider()
+        provider_name = self.config.get_current_model_provider()
         
-        model = get_model(model_name)
-        if model is None:
-            print_fancy("A model has not been configured. Type 'buddy info' for more information.", bold=True, color="red")
+        if provider_name is None:
+            print_fancy("A model provider has not been configured. Type 'buddy info providers' for more information.", bold=True, color="red")
             sys.exit(1)
+        
+        applicable_models = find_models(provider_name, vision_capability=require_vision, lowest_cost=lowest_cost)
+        
+        if len(applicable_models) == 0:
+            print_fancy("No models found that match the required criteria. You might want to switch providers.", bold=True, color="red")
+            sys.exit(1)
+
+        # Pick the first one
+        model = get_model(applicable_models[0])        
         
         return model        
