@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(__file__))
 from commands.use import use
 from commands.remove import remove
 from commands.info import display_info
-from model_factory import ModelFactory
+from models.base_model_factory import ModelFactory
 
 model_factory = ModelFactory()
 
@@ -21,23 +21,25 @@ def main():
 
     command = sys.argv[1]
 
-    # Check for non-intelligent commands
+    # Buddy information and current configuration
     if command == "info":
-        display_info()
+        display_info(sys.argv[2:])
         sys.exit(0)
-        
+    
+    # Enablement of model APIs or abilities
     elif command == "use":
         use(sys.argv[2:])
         sys.exit(0)
         
+    # Removal of model APIs or abilities
     elif command == "remove":
         remove(sys.argv[2:])
         sys.exit(0)
     
-    # Load the configured model
+    # Find a model to use for this command
+    model = model_factory.get_model(require_vision=False)
     
-    model = model_factory.get_model()
-    
+    # Collaborative educational flow
     if command == "help":
         if len(sys.argv) < 3:
             print("Usage: buddy help <task>")
@@ -46,6 +48,7 @@ def main():
         query = " ".join(sys.argv[2:])
         model.execute_educational(query)
     
+    # Supervised flow for non-read operations
     elif command == "carefully":
         if len(sys.argv) < 3:
             print("Usage: buddy carefully <task>")
@@ -54,6 +57,7 @@ def main():
         query = " ".join(sys.argv[2:])
         model.execute_carefully(query)
     
+    # Explanation of a command
     elif command == "explain":
         if len(sys.argv) < 3:
             print("Usage: buddy explain <command>")
@@ -62,6 +66,7 @@ def main():
         command_string = " ".join(sys.argv[2:])
         model.explain(command_string)
     
+    # Unsupervised flow
     else:
         query = " ".join(sys.argv[1:])
         model.execute_unsupervised(query)    

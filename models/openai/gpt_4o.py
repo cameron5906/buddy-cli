@@ -1,25 +1,14 @@
-import json
-from openai import OpenAI
-from models import model
-from base_model import BaseModel
-from utils.openai.functions import process_chat_response
+from models import ModelProvider, model
+from models.openai.base_gpt import BaseGPT
 from utils.shell_utils import print_fancy, get_system_context, \
     format_markdown_for_terminal
 
 
-@model("gpt-4o")
-class GPT4OModel(BaseModel):
+@model(ModelProvider.OPEN_AI, "gpt-4o", context_size=128000, cost_per_thousand_input_tokens=0.0050, vision_capability=True)
+class GPT4OModel(BaseGPT):
     """
     A class to interact with the GPT-4o model from OpenAI
     """
-
-    def __init__(self):
-        """
-        Initializes the GPT4OModel by creating an OpenAI client instance.
-        """
-        
-        super().__init__()
-        self.client = OpenAI(api_key=self.api_key)
 
     def execute_unsupervised(self, query):
         """
@@ -32,7 +21,23 @@ class GPT4OModel(BaseModel):
         messages = [
             {
                 "role": "system",
-                "content": self.expand_system_prompt(BaseModel.unsupervised_flow_instructions)
+                "content": self.expand_system_prompt(""""
+You perform a tasks by using the system shell. Commands you execute should be non-interactive and not require user input, and should not be expecting CTRL+C or other signals. do not let any processes run indefinitely.
+
+Stick to the following process:
+1. Create a high-level plan that will be followed to accomplish the task from the shell
+1.1 Tools should be used instead of manual command execution where possible
+2. Iterate over each step in the plan
+2.1 Execute the command for the step
+2.2 Review the stdout & stderr output of the command
+2.2.1 If the output is as expected, continue to the next step
+2.2.2 If the output is not as expected, attempt to resolve the issue before moving on to the next step
+3. Repeat steps 2.1-2.2 until all steps in the plan are completed
+4. End the process
+
+You will give each step a maximum of 5 attempts to complete successfully. If a step fails after 5 attempts, you will cancel the task and inform the user.
+If you successfully complete the task, you will inform the user that the task was completed successfully with a summary of what was done.
+""")
             },
             {
                 "role": "user",
@@ -66,7 +71,9 @@ class GPT4OModel(BaseModel):
                 ]
             )
             
-            is_finished, is_failure, returned_messages = process_chat_response(self, response, tools=ability_tools)
+            messages.append(response.choices[0].message)
+            
+            is_finished, is_failure, returned_messages = self.handle_internal_tools(response)
             
             if is_finished:
                 if is_failure:
@@ -89,7 +96,26 @@ class GPT4OModel(BaseModel):
         messages = [
             {
                 "role": "system",
-                "content": self.expand_system_prompt(BaseModel.careful_flow_instructions)
+                "content": self.expand_system_prompt(""""
+You perform a tasks by using the system shell. Commands you execute should be non-interactive and not require user input, and should not be expecting CTRL+C or other signals. do not let any processes run indefinitely.
+
+Stick to the following process:
+1. Create a high-level plan that will be followed to accomplish the task from the shell
+1.1 Tools should be used instead of manual command execution where possible
+2. Iterate over each step in the plan
+2.1 Execute the command for the step
+2.2 Review the stdout & stderr output of the command
+2.2.1 If the output is as expected, continue to the next step
+2.2.2 If the output is not as expected, attempt to resolve the issue before moving on to the next step
+3. Repeat steps 2.1-2.2 until all steps in the plan are completed
+4. End the process
+
+You will give each step a maximum of 5 attempts to complete successfully. If a step fails after 5 attempts, you will cancel the task and inform the user.
+If you successfully complete the task, you will inform the user that the task was completed successfully with a summary of what was done.
+
+Each command you execute will need to be marked as "dangerous", which is classified as any command that could modify the system or data in any way.
+If the user declines any of your commands, you will not execute them and you will either stop the task or follow the user's instructions.
+""")
             },
             {
                 "role": "user",
@@ -123,7 +149,9 @@ class GPT4OModel(BaseModel):
                 ]
             )
             
-            is_finished, is_failure, returned_messages = process_chat_response(self, response, tools=ability_tools, require_mutation_approval=True)
+            messages.append(response.choices[0].message)
+            
+            is_finished, is_failure, returned_messages = self.handle_internal_tools(response, require_mutation_approval=True)
             
             if is_finished:
                 if is_failure:
@@ -147,7 +175,32 @@ class GPT4OModel(BaseModel):
         messages = [
             {
                 "role": "system",
-                "content": self.expand_system_prompt(BaseModel.help_flow_instructions)
+                "content": self.expand_system_prompt("""
+You will walk the user through a step-by-step process of accomplishing a task through the system shell. Commands you execute should be non-interactive and should not require user input and should not be expecting CTRL+C or other signals; do not let any processes run indefinitely.
+
+The process will be as follows:
+1. Create a high-level plan that will be followed to accomplish the task from the shell
+- Tools should be used instead of manual command execution where possible
+- Your plan should include testing and validation if applicable
+1.1 Review the plan with the user
+1.1.1 If the user approves, continue to the first step
+1.1.2 If the user has questions, answer them and wait for approval to continue
+1.1.2.1 If the user suggests changes, make the changes and review the plan again
+2. Iterate over each step in the plan
+2.1. Provide an explanation for the step along with any necessary context for teaching purposes
+2.2. Provide the command to be executed
+2.3. Wait for user approval to execute the command
+2.3.1. If the user approves, execute the command
+2.3.2. If the user has questions, answer them and wait for approval to execute the command
+2.4. Review the stdout & stderr output of the command
+2.4.1. Provide a summary of the output to the user in an educational manner
+2.4.2. If the output is as expected, continue to the next step
+2.4.3. If the output is not as expected, attempt to resolve the issue before moving on to the next step
+3. Repeat steps 2.1-2.4 until all steps in the plan are completed
+4. End the process
+
+The user will only be able to see what you say through the tools that you call, so you should only output information for internal monologue.
+""")
             },
             {
                 "role": "user",
@@ -167,13 +220,13 @@ class GPT4OModel(BaseModel):
             response = self.run_inference(
                 messages=messages,
                 tools=[
+                    *ability_tools,
                     self.make_tool(
                         "provide_plan",
                         "Provides a plan to the user for accomplishing the task. This will be a numbered list with titles of each step and no other information",
                         {"plan": "string"},
                         ["plan"]
                     ),
-                    *ability_tools,
                     self.make_tool(
                         "provide_explanation",
                         "Provides an explanation for a step to the user in an informative manner. Commands should be explained in a way that can be educational for the user. The title should be the step number or name",
@@ -207,7 +260,9 @@ class GPT4OModel(BaseModel):
                 ]
             )
             
-            is_finished, is_failure, returned_messages = process_chat_response(self, response, tools=ability_tools)
+            messages.append(response.choices[0].message)
+            
+            is_finished, is_failure, returned_messages = self.handle_internal_tools(response)
             
             # If we're finished, we can break out of the loop
             if is_finished:
@@ -236,7 +291,9 @@ class GPT4OModel(BaseModel):
             messages=[
                 {
                     "role": "system",
-                    "content": BaseModel.explain_flow_instructions  
+                    "content": """
+You will provide a detailed explanation of a shell command provided to you by the user. Your explanation should be informative and educational, providing context and reasoning for the command and its usage.
+"""
                 },
                 {
                     "role": "user",
@@ -247,126 +304,3 @@ class GPT4OModel(BaseModel):
         )
         
         format_markdown_for_terminal(response.choices[0].message.content)
-
-    def run_inference(self, messages, tools):
-        """
-        Method to run inference on a list of messages with a list of tools
-        
-        Args:
-            messages (list): List of messages to run inference on
-            tools (list): List of tools to use for inference
-        """
-        
-        response = self.client.chat.completions.create(
-            model="gpt-4o",
-            messages=messages,
-            tools=tools,
-            tool_choice="auto",
-            temperature=0.1,
-            parallel_tool_calls=False
-        )
-        
-        return response
-    
-    def make_tool(self, tool_name, description, args={}, required=[]):
-        """
-        Creates the structure for describing tools to the model.
-        
-        Args:
-            tool_name (str): The name of the tool
-            description (str): The description of the tool
-            args (list): The arguments for the tool (optional)
-            required (list): The required arguments for the tool (optional)
-            
-        Returns:
-            dict: The tool definition
-        """
-        
-        if args is None:
-            args = {"type": "object", "properties": {}}
-        if required is None:
-            required = []
-
-        properties = {}
-        for param, details in args.items():
-            if isinstance(details, dict):
-                properties[param] = details
-            else:
-                properties[param] = {"type": details}
-                if param in required:
-                    properties[param]["description"] = f"{param} is required"
-
-        return {
-            "type": "function",
-            "function": {
-                "name": tool_name,
-                "description": description,
-                "parameters": {
-                    "type": "object",
-                    "properties": properties,
-                    "required": required
-                }
-            }
-        }
-        
-    def make_tool_result(self, tool_call, result):
-        """
-        Creates the structure for describing tool results to the model.
-        
-        Args:
-            tool_call (str): The tool call dictionary
-            result (Any): The result of the tool call
-            
-        Returns:
-            dict: The tool result
-        """
-        
-        return {
-            "role": "tool",
-            "tool_call_id": tool_call.id,
-            "name": tool_call.function.name,
-            "content": result
-        }
-    
-    def get_tool_call(self, tool_name, response):
-        """
-        Parses tool call arguments for a given tool
-        
-        Args:
-            tool_name (str): The name of the tool to get calls for
-            response (dict): The response from the model
-            
-        Returns:
-            list: The call id, arguments and dictionary, or None if the tool call was not found
-        """
-
-        choice = response.choices[0]
-        
-        if choice.finish_reason == "tool_calls":
-            for tool_call in choice.message.tool_calls:
-                name = tool_call.function.name
-                args = json.loads(tool_call.function.arguments)
-                
-                if name == tool_name:
-                    return tool_call.id, args, tool_call
-
-        return None, None, None
-
-    def make_ability_action_tools(self):
-        """
-        Method to create tools for the ability actions that are available to the model
-        """
-        
-        tools = []
-        
-        for action in self.ability_actions:
-            tools.append(
-                self.make_tool(
-                    action["name"],
-                    action["description"],
-                    action["argument_schema"],
-                    action["required_arguments"]
-                )
-            )
-            
-        return tools

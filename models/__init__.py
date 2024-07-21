@@ -1,23 +1,40 @@
+from enum import Enum
 import os
 import importlib
 from typing import Type, Dict
-from base_model import BaseModel
+from models.base_model import BaseModel
+
+
+class ModelProvider(Enum):
+    OPEN_AI = "openai"
+    GOOGLE = "google"
+    ANTHROPIC = "anthropic"
+
 
 MODELS: Dict[str, Type['BaseModel']] = {}
+PROVIDER_NAMES = [provider.value for provider in ModelProvider]
 
 
-def model(name):
+def model(provider: ModelProvider, name, context_size, cost_per_thousand_input_tokens, vision_capability=False):
     """
     Decorator to register a model with the system.
     
     Args:
+        provider (ModelProvider): The provider (company) of the model
         name (str): The name of the model
+        context_size (int): The size of the context window
+        cost_per_thousand_input_tokens (float): The cost per thousand input tokens
+        vision_capability (bool): Whether the model has vision capability
     """
 
     def decorator(cls):
         if issubclass(cls, BaseModel):
             MODELS[name] = cls
+            cls.provider = provider
             cls.model_name = name
+            cls.context_size = context_size
+            cls.cost_per_thousand_input_tokens = cost_per_thousand_input_tokens
+            cls.vision_capability = vision_capability
         else:
             raise TypeError("Model must inherit from BaseModel")
         return cls
@@ -26,13 +43,21 @@ def model(name):
 
 
 def discover_models():
-    for file in os.listdir(os.path.dirname(__file__)):
-        if file.endswith(".py") and file != "__init__.py":
-            module_name = f"models.{file[:-3]}"
-            importlib.import_module(module_name)
+    # Get directories in this file's directory
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    subdirs = [d for d in os.listdir(current_dir) if os.path.isdir(os.path.join(current_dir, d))]
+    
+    # Iterate over each directory
+    for subdir in subdirs:
+        # Make sure its a directory and not a file
+        if not os.path.isdir(os.path.join(current_dir, subdir)):
+            continue
+        
+        # Import the module
+        importlib.import_module(f"{__name__}.{subdir}")
 
 
-def get_model(name, *args, **kwargs):
+def create_model(name, *args, **kwargs):
     """
     Get an instance of a model by name
     
@@ -49,3 +74,47 @@ def get_model(name, *args, **kwargs):
         return None
     
     return model_cls(*args, **kwargs)
+
+
+def find_models(provider: ModelProvider, vision_capability=None, min_context=None, lowest_cost=False):
+    """
+    Find models based on provider, vision capability, context size, and cost.
+    
+    Args:
+        provider (ModelProvider): The provider to filter by
+        vision_capability (bool): Whether the model has vision capability
+        min_context (int): The minimum context size
+        lowest_cost (bool): Whether to sort by lowest cost
+        
+    Returns:
+        list (str): A list of model names that match the criteria
+    """
+    
+    model_names = [
+        name for name, cls in MODELS.items() 
+        if cls.provider.value == provider
+        and (
+            vision_capability is None 
+            or vision_capability is False
+            or cls.vision_capability == vision_capability
+        )
+        and (
+            min_context is None 
+            or cls.context_size >= min_context
+        )
+    ]
+    
+    # Define a sorting algorithm that will sort by cost, then by vision capability, then by vision cost
+    # The benefit of this is that we can sort by cost, but still have vision models first if vision is required
+    # If vision is not required, we might also still consider vision models if they are cheaper than non-vision models
+    def sort_weights(name):
+        cls = MODELS[name]
+        cost = cls.cost if lowest_cost else 0
+        vision_sort = 0 if cls.vision_capability else 1  # Non-vision models first
+        vision_cost = cls.cost_per_thousand_input_tokens if vision_capability in [None, False] and cls.vision_capability else 0
+        return (cost, vision_sort, vision_cost)
+    
+    # Sort the list using the custom key
+    sorted_model_names = sorted(model_names, key=sort_weights)
+    
+    return sorted_model_names

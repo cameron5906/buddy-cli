@@ -37,12 +37,11 @@ class BaseAbility:
         
         return None
         
-    def call_action(self, model, action_name, argument_dict):
+    def call_action(self, action_name, argument_dict):
         """
         Calls an action with the given arguments.
         
         Args:
-            model (BaseModel): The model that is calling the action
             action_name (str): The name of the action
             argument_dict (dict): The arguments to pass to the action
             
@@ -50,4 +49,4 @@ class BaseAbility:
             Any: The result of the action
         """
         
-        return self.action_handlers[action_name](self, model, argument_dict)
+        return self.action_handlers[action_name](self, argument_dict)

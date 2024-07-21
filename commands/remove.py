@@ -1,8 +1,8 @@
-import sys
 import initialize_models
 import initialize_abilities
+import sys
 from abilities import ABILITIES, get_ability
-from models import MODELS
+from models import PROVIDER_NAMES
 from config.config_manager import ConfigManager
 from config.secure_store import SecureStore
 from utils.shell_utils import print_fancy
@@ -10,7 +10,7 @@ from utils.shell_utils import print_fancy
 
 def remove(args):
     """
-    Entry point for the 'remove' command. Removes a model or ability from Buddy.
+    Entry point for the 'remove' command. Removes a model provider or ability from Buddy.
     
     Args:
         args (list): List of arguments passed to the command
@@ -18,12 +18,12 @@ def remove(args):
     
     resource_type = args[0]
     
-    if resource_type == "model":
+    if resource_type == "provider":
         if len(args) < 2:
-            print_fancy("Usage: buddy remove model <name>", color="red")
+            print_fancy("Usage: buddy remove provider <name>", color="red")
             sys.exit(1)
             
-        remove_model(args[1])
+        remove_model_provider(args[1])
     elif resource_type == "ability":
         if len(args) < 2:
             print_fancy("Usage: buddy remove ability <name>", color="red")
@@ -35,28 +35,28 @@ def remove(args):
         sys.exit(1)
 
 
-def remove_model(model_name):
+def remove_model_provider(provider_name):
     """
-    Removes configuration for a model from Buddy.
+    Removes configuration for a model provider from Buddy.
     
     Args:
-        model_name (str): The name of the model to remove
+        model_name (str): The name of the model provider to disable
     """
     
-    current_model_name = ConfigManager().get_current_model()
+    current_provider_name = ConfigManager().get_current_model_provider()
     
-    if model_name == current_model_name:
-        print_fancy("Cannot remove the current model. Please switch to another model first using 'buddy use model <name>'.", color="red")
+    if provider_name == current_provider_name:
+        print_fancy("Cannot remove the current model provider. Please switch to another provider first using 'buddy use provider <name> [api_key]'.", color="red")
         sys.exit(1)
         
-    if model_name not in MODELS:
-        print_fancy(f"Unknown model '{model_name}'", color="red")
+    if provider_name not in PROVIDER_NAMES:
+        print_fancy(f"Unknown provider '{provider_name}. Use 'buddy info providers' for more information.'", color="red")
         sys.exit(1)
         
     secure_store = SecureStore()
-    secure_store.remove_api_key(model_name)
+    secure_store.remove_api_key(provider_name)
     
-    print_fancy(f"Removed {MODELS[model_name]['name']} model configuration", color="green")
+    print_fancy(f"Removed {provider_name} configuration", color="green")
 
 
 def remove_ability(ability_name):
