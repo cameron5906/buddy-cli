@@ -191,6 +191,7 @@ class BaseModel:
     def handle_internal_tools(self, response, require_mutation_approval=False):
         """
         Handles built-in tools for regular Buddy flows.
+        TODO: Might want to split this out in a later refactor
         
         Args:
             model (BaseModel): The model that the response is from

@@ -147,7 +147,8 @@ class BaseGPT(BaseModel):
 
     def summarize(self, content):
         """
-        Summarizes a block of potentially long text into a smaller summary.
+        Summarizes a block of potentially long text into a smaller summary using the lowest cost model available.
+        TODO: We should include a tokenizer so we can be specific about context window requirements and chunk if needed.
         
         Args:
             content (str): The content to summarize

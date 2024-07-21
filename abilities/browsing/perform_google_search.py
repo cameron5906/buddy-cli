@@ -59,6 +59,7 @@ When you have found a result that you believe matches the goal of the search, yo
     
     result = None
     
+    # Keep scrolling and providing screenshots until a result is found or we've hit the end of the page
     while result is None and not is_scrolled_to_bottom(driver):
         screen_base64 = driver.get_screenshot_as_base64()
         messages.append({

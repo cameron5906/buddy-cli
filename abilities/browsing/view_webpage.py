@@ -64,6 +64,8 @@ Obey the following guidelines:
     result_segments = []
     first_look = True
     
+    # Process the first look at the page and keep reading until the bottom is reached
+    # There's a break condition for if the model decides to stop reading
     while first_look or not is_scrolled_to_bottom(driver):
         first_look = False
         screen_base64 = driver.get_screenshot_as_base64()
@@ -86,15 +88,17 @@ Obey the following guidelines:
         
         messages.append(response.choices[0].message)
         
+        # Check to see if the model would like to take notes
         note_call_id, note_call_args, note_call = model.get_tool_call("add_note", response)
-        
         if note_call_id is not None:
             result_segments.append(note_call_args["note"])
             messages.append(model.make_tool_result(note_call, "Success"))
             
+        # Check if the model is done reading and wants to stop
         if model.get_tool_call("stop_reading", response)[0] is not None:
             break
             
+        # Scroll and continue if there's more to read
         if not is_scrolled_to_bottom(driver):
             print_fancy("Scrolling for more information...", italic=True, color="cyan")
             scroll_page(driver)
