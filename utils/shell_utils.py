@@ -171,11 +171,12 @@ def add_to_path(dirpath):
     """
     if not is_included_in_path(dirpath):
         if platform.system() == "Windows":
-            # Update PATH permanently for the user
+            # Update PATH permanently for the user using PowerShell
             path_dirs = os.environ["PATH"].split(";")
             path_dirs.append(dirpath)
             new_path = ";".join(path_dirs)
-            subprocess.run(['setx', 'PATH', new_path], shell=True)
+            powershell_command = f'[Environment]::SetEnvironmentVariable("Path", "{new_path}", "User")'
+            subprocess.run(["powershell", "-Command", powershell_command], shell=True)
 
             # Update PATH for the current session
             os.environ["PATH"] = new_path
