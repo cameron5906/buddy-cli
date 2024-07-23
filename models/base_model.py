@@ -9,6 +9,12 @@ from utils.user_input import is_approval, is_denial
 
 class BaseModel:
 
+    model_name = None
+    api_key = None
+    ability_actions = []
+    ability_prompts = {}
+    is_executing_ability = False
+    
     def __init__(self):
         """
         Initializes the model by loading the API key from the secure store.
@@ -116,7 +122,7 @@ class BaseModel:
         
         return base_prompt
     
-    def run_inference(self, messages, tools=[], temperature=0.0):
+    def run_inference(self, messages, tools=None, temperature=0.0):
         """
         Runs inference on the messages and tools provided.
         
@@ -131,7 +137,7 @@ class BaseModel:
         
         raise NotImplementedError("Subclasses should implement this method")
     
-    def make_tool(self, tool_name, description, args={}, required=[]):
+    def make_tool(self, tool_name, description, args={}, required=[], json_parameter_schema=None):
         """
         Creates the structure for describing tools to the model.
         
@@ -140,6 +146,7 @@ class BaseModel:
             description (str): The description of the tool
             args (list): The arguments for the tool (optional)
             required (list): The required arguments for the tool (optional)
+            json_parameter_schema (dict): The JSON schema for the tool parameters for advanced usage (optional)
             
         Returns:
             dict: The tool definition
@@ -203,6 +210,9 @@ class BaseModel:
             is_failure (bool): Whether the process is a failure
             list: A list of messages to add to the chat context
         """
+        
+        if response.choices[0].finish_reason != "tool_calls":
+            return False, None, []
         
         is_finished = False
         is_failure = None  # Can't have a failure if we're not finished
@@ -286,7 +296,7 @@ class BaseModel:
                 is_approved = True
             
             if is_approved or not require_mutation_approval:
-                stdout, stderr = run_command(execute_command_args['command'])
+                stdout, stderr = run_command(execute_command_args['command'], display_output=not self.is_executing_ability)
                 
                 if len(stdout) > 1000:
                     stdout = self.summarize(stdout)
@@ -308,28 +318,58 @@ class BaseModel:
             
             returned_messages.append(self.make_tool_result(end_process_call, "Success"))
             
-        # Handle ability actions
-        for ability_action_name in self.ability_actions:
-            ability_action_call_id, ability_action_args, ability_action_call = self.get_tool_call(ability_action_name, response)
+        # Handle ability actions, loop through the names of the dict
+        for ability_action_name in [action["name"] for action in self.ability_actions]:
+            ability_name = ability_action_name.split("_")[0]
+            action_tool_name = ability_action_name[len(ability_name) + 1:]
+            
+            ability_action_call_id, ability_action_args, ability_action_call = self.get_tool_call(action_tool_name, response)
             if ability_action_call_id is not None:
-                ability_name = ability_action_name.split("_")[0]
-                tool_name = ability_action_name.split(ability_name + "_")[1]
-                
                 ability = get_ability(ability_name)
                 
                 if ability is None:
                     returned_messages.append({
                         "role": "tool",
                         "tool_call_id": ability_action_call_id,
-                        "name": tool_name,
+                        "name": action_tool_name,
                         "content": "No such ability. Please try again with a different tool"
                     })
                     continue
                 
                 print_fancy(f"Using the {ability_name} ability...", italic=True, color="blue")
                 
-                tool_output = ability.call_action(self, tool_name, ability_action_args)
+                self.is_executing_ability = True
+                tool_output = ability.call_action(action_tool_name, ability_action_args)
+                self.is_executing_ability = False
                 
                 returned_messages.append(self.make_tool_result(ability_action_call, tool_output if tool_output else "Success"))
 
+        # Check for unhandled tools and generate error responses
+        unhandled_calls = self.get_unhandled_tool_calls(response.choices[0].message, returned_messages)
+        for unhandled_call in unhandled_calls:
+            returned_messages.append({
+                "role": "tool",
+                "tool_call_id": unhandled_call.id,
+                "name": unhandled_call.function.name,
+                "content": f"No such tool '{unhandled_call.function.name}'"
+            })
+
         return is_finished, is_failure, returned_messages
+
+    def get_unhandled_tool_calls(self, message, returned_messages):
+        """
+        Locates any tool calls that do not have responses associated with them
+
+        Args:
+            message (dict): The message to check for tool calls
+            returned_messages (list): The messages that will be returned
+        """
+        
+        unhandled_calls = []
+        
+        for tool_call in message.tool_calls:
+            if tool_call.id not in [msg["tool_call_id"] for msg in returned_messages]:
+                unhandled_calls.append(tool_call)
+                print_fancy(f"Unhandled tool call: {tool_call.id} ({tool_call.function.name})", bold=True, color="red")
+                
+        return unhandled_calls
