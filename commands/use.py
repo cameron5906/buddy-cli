@@ -96,8 +96,12 @@ def use_ability(ability_name, args=None):
     # Initialize the ability and run the enablement process
     inst = get_ability(ability_name)
     
-    if not inst.enable(args):
+    enable_result = inst.enable(args)
+    
+    if enable_result is False:
         print_fancy(f"Failed to enable ability '{ability_name}'", color="red")
         sys.exit(1)
     
     config_manager.add_ability(ability_name)
+    
+    print_fancy(f"{ability_name} has been enabled", color="green")

@@ -22,10 +22,6 @@ class Browsing(BaseAbility):
             if not self.__handle_chrome_install():
                 print_fancy("Failed to install Chrome", bold=True, color="red")
                 return False
-        else:
-            print_fancy("Chrome found", italic=True, color="cyan")
-            
-        return True
     
     def disable(self):
         pass
