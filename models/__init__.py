@@ -10,12 +10,23 @@ class ModelProvider(Enum):
     GOOGLE = "google"
     ANTHROPIC = "anthropic"
 
+    
+class ModelTag(Enum):
+    MOST_INTELLIGENT = "most_intelligent"  # Tag for the most intelligent variant available for a provider
+    BALANCED = "balanced"  # Tag for a model that is balanced in terms of cost and capability
+    FASTEST = "fastest"  # Tag for a model that is fast but not necessarily the most intelligent
+
+    
+class TagSelectionMode(Enum):
+    ANY = "any"
+    ALL = "all"
+
 
 MODELS: Dict[str, Type['BaseModel']] = {}
 PROVIDER_NAMES = [provider.value for provider in ModelProvider]
 
 
-def model(provider: ModelProvider, name, context_size, cost_per_thousand_input_tokens, vision_capability=False):
+def model(provider: ModelProvider, name, context_size, cost_per_thousand_input_tokens, vision_capability=False, tags=[]):
     """
     Decorator to register a model with the system.
     
@@ -25,6 +36,7 @@ def model(provider: ModelProvider, name, context_size, cost_per_thousand_input_t
         context_size (int): The size of the context window
         cost_per_thousand_input_tokens (float): The cost per thousand input tokens
         vision_capability (bool): Whether the model has vision capability
+        tags (list): A list of tags for the model
     """
 
     def decorator(cls):
@@ -35,6 +47,7 @@ def model(provider: ModelProvider, name, context_size, cost_per_thousand_input_t
             cls.context_size = context_size
             cls.cost_per_thousand_input_tokens = cost_per_thousand_input_tokens
             cls.vision_capability = vision_capability
+            cls.tags = [tag.value for tag in tags]
         else:
             raise TypeError("Model must inherit from BaseModel")
         return cls
@@ -76,7 +89,7 @@ def create_model(name, *args, **kwargs):
     return model_cls(*args, **kwargs)
 
 
-def find_models(provider: ModelProvider, vision_capability=None, min_context=None, lowest_cost=False):
+def find_models(provider: ModelProvider, vision_capability=None, min_context=None, lowest_cost=False, tags=[], tag_mode=TagSelectionMode.ALL):
     """
     Find models based on provider, vision capability, context size, and cost.
     
@@ -85,6 +98,8 @@ def find_models(provider: ModelProvider, vision_capability=None, min_context=Non
         vision_capability (bool): Whether the model has vision capability
         min_context (int): The minimum context size
         lowest_cost (bool): Whether to sort by lowest cost
+        tags (list): A list of tags to filter by
+        tag_mode (TagSelectionMode): The mode for filtering by tags
         
     Returns:
         list (str): A list of model names that match the criteria
@@ -93,6 +108,11 @@ def find_models(provider: ModelProvider, vision_capability=None, min_context=Non
     model_names = [
         name for name, cls in MODELS.items() 
         if cls.provider.value == provider
+        and (
+            len(tags) == 0
+            or (tag_mode == TagSelectionMode.ALL and all(tag in cls.tags for tag in tags))
+            or (tag_mode == TagSelectionMode.ANY and any(tag in cls.tags for tag in tags))
+        )
         and (
             vision_capability is None 
             or vision_capability is False
@@ -109,7 +129,7 @@ def find_models(provider: ModelProvider, vision_capability=None, min_context=Non
     # If vision is not required, we might also still consider vision models if they are cheaper than non-vision models
     def sort_weights(name):
         cls = MODELS[name]
-        cost = cls.cost if lowest_cost else 0
+        cost = cls.cost_per_thousand_input_tokens if lowest_cost else 0
         vision_sort = 0 if cls.vision_capability else 1  # Non-vision models first
         vision_cost = cls.cost_per_thousand_input_tokens if vision_capability in [None, False] and cls.vision_capability else 0
         return (cost, vision_sort, vision_cost)

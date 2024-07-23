@@ -1,5 +1,6 @@
 import json
 from openai import OpenAI
+import openai
 from models.base_model import BaseModel
 
 
@@ -21,7 +22,7 @@ class BaseGPT(BaseModel):
         super().__init__()
         self.client = OpenAI(api_key=self.api_key)
 
-    def run_inference(self, messages, tools=[], temperature=0.1):
+    def run_inference(self, messages, tools=None, temperature=0.1):
         """
         Method to run inference on a list of messages with a list of tools
         
@@ -31,18 +32,36 @@ class BaseGPT(BaseModel):
             temperature (float): The temperature for the model
         """
         
-        response = self.client.chat.completions.create(
-            model=self.model_name,
-            messages=messages,
-            tools=tools,
-            tool_choice="auto",
-            temperature=temperature,
-            parallel_tool_calls=False
-        )
+        attempts = 0
+        response = None
+        
+        while response is None and attempts < 5:
+            attempts += 1
+            
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.model_name,
+                    messages=messages,
+                    tools=tools,
+                    temperature=temperature,
+                    parallel_tool_calls=False
+                )
+            except openai.InternalServerError as internal_server_error:
+                if "The model produced invalid content" in internal_server_error.message:
+                    messages.append({
+                        "role": "user",
+                        "content": "You provided invalid content. Please try again."
+                    })
+                    pass
+                else:
+                    raise internal_server_error
+        
+        if response is None:
+            raise Exception("Model failed to respond")
         
         return response
     
-    def make_tool(self, tool_name, description, args={}, required=[]):
+    def make_tool(self, tool_name, description, args={}, required=[], json_parameter_schema=None):
         """
         Creates the structure for describing tools to the model.
         
@@ -51,10 +70,22 @@ class BaseGPT(BaseModel):
             description (str): The description of the tool
             args (list): The arguments for the tool (optional)
             required (list): The required arguments for the tool (optional)
+            json_parameter_schema (dict): The JSON schema for the parameters for advanced usage (optional)
             
         Returns:
             dict: The tool definition
         """
+
+        # If a JSON schema is provided, use it instead of building one the simple way
+        if json_parameter_schema is not None:
+            return {
+                "type": "function",
+                "function": {
+                    "name": tool_name,
+                    "description": description,
+                    "parameters": json_parameter_schema
+                }
+            }
         
         if args is None:
             args = {"type": "object", "properties": {}}
@@ -62,6 +93,7 @@ class BaseGPT(BaseModel):
             required = []
 
         properties = {}
+        
         for param, details in args.items():
             if isinstance(details, dict):
                 properties[param] = details
@@ -119,9 +151,19 @@ class BaseGPT(BaseModel):
         if choice.finish_reason == "tool_calls":
             for tool_call in choice.message.tool_calls:
                 name = tool_call.function.name
-                args = json.loads(tool_call.function.arguments)
                 
-                if name == tool_name:
+                # Check if its a string
+                try:
+                    if isinstance(tool_call.function.arguments, str):
+                        args = json.loads(tool_call.function.arguments)
+                    elif isinstance(tool_call.function.arguments, dict):
+                        args = tool_call.function.arguments
+                    else:
+                        args = {}
+                except json.JSONDecodeError:
+                    return None, None, None
+                
+                if name.endswith(tool_name):
                     return tool_call.id, args, tool_call
 
         return None, None, None
@@ -134,9 +176,13 @@ class BaseGPT(BaseModel):
         tools = []
         
         for action in self.ability_actions:
+            # Ability_actions store the name as {ability_name}_{action_name}, so we need to substring to get the actual action name
+            ability_name = action["name"].split("_")[0]
+            action_name = action["name"][len(ability_name) + 1:]
+            
             tools.append(
                 self.make_tool(
-                    action["name"],
+                    action_name,
                     action["description"],
                     action["argument_schema"],
                     action["required_arguments"]

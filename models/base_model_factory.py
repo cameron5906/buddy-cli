@@ -1,6 +1,7 @@
+from enum import Enum
 import initialize_models
 import sys
-from models import create_model, find_models
+from models import TagSelectionMode, create_model, find_models
 from config.config_manager import ConfigManager
 from utils.shell_utils import print_fancy
 
@@ -20,13 +21,15 @@ class ModelFactory:
         
         self.config = ConfigManager()
 
-    def get_model(self, require_vision=None, lowest_cost=None):
+    def get_model(self, require_vision=None, lowest_cost=None, tags=[], tag_mode=TagSelectionMode.ALL):
         """
         Retrieves the name of the current model from the configuration and returns an instance of that model.
         
         Args:
             require_vision (bool): Whether the model must have vision capabilities
             lowest_cost (bool): Whether to return the lowest cost model
+            tags (list): A list of tags to filter by
+            tag_mode (TagSelectionMode): The mode to use when filtering by tags
         
         Raises:
             ValueError: If the current model is not recognized
@@ -38,7 +41,7 @@ class ModelFactory:
             print_fancy("A model provider has not been configured. Type 'buddy info providers' for more information.", bold=True, color="red")
             sys.exit(1)
         
-        applicable_models = find_models(provider_name, vision_capability=require_vision, lowest_cost=lowest_cost)
+        applicable_models = find_models(provider_name, vision_capability=require_vision, lowest_cost=lowest_cost, tags=tags, tag_mode=tag_mode)
         
         if len(applicable_models) == 0:
             print_fancy("No models found that match the required criteria. You might want to switch providers.", bold=True, color="red")

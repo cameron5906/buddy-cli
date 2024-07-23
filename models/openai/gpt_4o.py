@@ -4,7 +4,13 @@ from utils.shell_utils import print_fancy, get_system_context, \
     format_markdown_for_terminal
 
 
-@model(ModelProvider.OPEN_AI, "gpt-4o", context_size=128000, cost_per_thousand_input_tokens=0.0050, vision_capability=True)
+@model(
+    ModelProvider.OPEN_AI,
+    "gpt-4o",
+    context_size=128_000,
+    cost_per_thousand_input_tokens=0.0050,
+    vision_capability=True
+)
 class GPT4OModel(BaseGPT):
     """
     A class to interact with the GPT-4o model from OpenAI
