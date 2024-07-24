@@ -81,13 +81,13 @@ Want to go even further than your own shell's capabilities? Well, Buddy is quite
 To run Buddy CLI, simply use the following command:
 
 ```sh
-./buddy_cli.py <input> [options]
+python ./src/buddy_cli.py <input> [options]
 ```
 
 For example:
 
 ```txt
-./buddy_cli.py help set up a minecraft server using Docker
+python ./src/buddy_cli.py help set up a minecraft server using Docker
 ```
 
 ### Using Docker for Testing
