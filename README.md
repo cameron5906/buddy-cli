@@ -128,6 +128,7 @@ You can use `python start_sandbox.py --help` for the full output.
 ## 📚 Commands
 
 - `buddy info` - Display usage instructions and current configuration for Buddy CLI
+- `buddy install [name]` - Allows you to install Buddy as a shell alias so you can run it anywhere without a Python prefix or path. You can even name it whatever you want.
 - `buddy <task>` - Let Buddy handle a task without any supervision _(**WARNING:** be careful!)_
 - `buddy carefully <task>` - Let Buddy handle a task, but with user confirmation for every non-read action
 - `buddy explain <task>` - Get detailed and informative documentation on any command(s) before you run them through your shell
