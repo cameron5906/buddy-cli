@@ -131,7 +131,7 @@ def copy_files_to_container(container_id):
     """
     
     # Define the local source directory and the target directory inside the container
-    src_dir = os.path.abspath("../src")
+    src_dir = os.path.abspath("..")
     target_dir = "/app/"
     
     # List of tasks for parallel execution
@@ -204,7 +204,7 @@ def main(update=False, open_existing=False, os_name="ubuntu", is_root=False):
         print(f"Building a new {os_name} sandbox environment...")
         
         # Build a new Docker image
-        run_docker_build(f"docker build -t {container_name} -f {dockerfile_path} ../src --progress=plain")
+        run_docker_build(f"docker build -t {container_name} -f {dockerfile_path} .. --progress=plain")
 
         # Remove existing container if it exists
         if container_id:

@@ -19,19 +19,19 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY requirements.txt requirements.txt
 
-# Install any needed packages specified in requirements.txt
-RUN pip3 install --no-cache-dir -r requirements.txt
+# Create a Python virtual environment
+RUN python3 -m venv venv
 
-COPY . /app
+# Install any needed packages specified in requirements.txt
+RUN ./venv/bin/pip install --no-cache-dir -r requirements.txt
+
+COPY ./ ./
 
 # Make the buddy_cli.py script executable
-RUN chmod +x buddy_cli.py
+RUN chmod +x src/buddy_cli.py
 
-# Move the buddy_cli.py script to /usr/local/bin and rename it to buddy
-RUN mv buddy_cli.py /usr/local/bin/buddy
-
-# Set the PYTHONPATH environment variable
-ENV PYTHONPATH=/app
+# Install an alias to point "buddy" command to the buddy_cli.py script using the venv interpreter
+RUN echo "alias buddy='/app/venv/bin/python /app/src/buddy_cli.py'" >> ~/.bashrc
 
 # Set the default command to buddy
 CMD ["/bin/bash"]
