@@ -29,8 +29,8 @@ COPY ./ ./
 # Make the buddy_cli.py script executable
 RUN chmod +x src/buddy_cli.py
 
-# Install an alias to point "buddy" command to the buddy_cli.py script. Need to activate the venv first
-RUN echo "alias buddy='source /app/venv/bin/activate && python /app/src/buddy_cli.py'" >> ~/.bashrc
+# Install an alias to point "buddy" command to the buddy_cli.py script using the venv interpreter
+RUN echo "alias buddy='/app/venv/bin/python /app/src/buddy_cli.py'" >> ~/.bashrc
 
 # Set the default command to bash
 CMD ["/bin/bash"]
