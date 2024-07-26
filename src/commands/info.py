@@ -1,6 +1,6 @@
-import src.initialize_models as initialize_models
+import initialize_models as initialize_models
 from abilities import ABILITIES
-from models import MODELS, PROVIDER_NAMES, find_models
+from models import PROVIDER_NAMES, find_models
 from config.config_manager import ConfigManager
 
 
