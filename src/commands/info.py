@@ -1,6 +1,6 @@
-import initialize_models
+import initialize_models as initialize_models
 from abilities import ABILITIES
-from models import MODELS, PROVIDER_NAMES, find_models
+from models import PROVIDER_NAMES, find_models
 from config.config_manager import ConfigManager
 
 
@@ -43,6 +43,7 @@ Configuration:
     Enabled Abilities: {enabled_abilities_str}
 
 Usage:
+    buddy install [name]                - Install Buddy as a shell alias, optionally with a different name
     buddy <task>                        - Execute a task in the shell without supervision
     buddy <command> [options]           - Execute a Buddy command
     buddy info                          - Display this information

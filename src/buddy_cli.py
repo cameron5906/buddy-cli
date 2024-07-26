@@ -5,6 +5,7 @@ import os
 # Add the current directory to the Python path to ensure modules can be found
 sys.path.append(os.path.dirname(__file__))
 
+from commands.install import install
 from commands.use import use
 from commands.remove import remove
 from commands.info import display_info
@@ -21,11 +22,16 @@ def main():
 
     command = sys.argv[1]
 
+    # Installation as a shell alias
+    if command == "install":
+        install(sys.argv[2:])
+        sys.exit(0)
+
     # Buddy information and current configuration
     if command == "info":
         display_info(sys.argv[2:])
         sys.exit(0)
-    
+        
     # Enablement of model APIs or abilities
     elif command == "use":
         use(sys.argv[2:])
