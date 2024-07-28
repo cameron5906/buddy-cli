@@ -15,6 +15,8 @@ def handle_locate_file(file_reference):
         str | None: The absolute path to the file, or None if not found
     """
     
+    print_fancy(f"Locating file: {file_reference}", color="cyan")
+    
     # Attempt #1: Check if the file exists in the current working directory
     if os.path.exists(file_reference):
         # Return the absolute path to the file

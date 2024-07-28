@@ -1,15 +1,15 @@
 import os
 from abilities import ability, ability_action
-from abilities.analysis.analyzers.image_analysis import handle_analyze_image
-from abilities.analysis.analyzers.spreadsheet_analysis import handle_analyze_spreadsheet
-from abilities.analysis.analyzers.xml_analysis import handle_analyze_xml
-from abilities.analysis.analyzers.yaml_analysis import handle_analyze_yaml
+from abilities.analysis.file_types.images import handle_analyze_image
+from abilities.analysis.file_types.json import handle_analyze_json
+from abilities.analysis.file_types.pdf import handle_analyze_pdf
+from abilities.analysis.file_types.spreadsheets import handle_analyze_spreadsheet
+from abilities.analysis.file_types.xml import handle_analyze_xml
+from abilities.analysis.file_types.yaml import handle_analyze_yaml
 from abilities.base_ability import BaseAbility
 from abilities.analysis.utils import is_poppler_installed, install_poppler
 from abilities.analysis.locate_file import handle_locate_file
 from utils.shell_utils import print_fancy
-from abilities.analysis.analyzers.pdf_analysis import handle_analyze_pdf
-from abilities.analysis.analyzers.json_analysis import handle_analyze_json
 
 ARGUMENTS = {"file_path": "string", "instructions": {"type": "string", "description": "Detailed instructions to pass to the analysis expert"}}
 REQUIRED_ARGUMENTS = ["file_path", "instructions"]
@@ -33,19 +33,12 @@ class Analysis(BaseAbility):
     def get_prompt(self):
         return """
 # File Analysis
-You are able to speak to several experts who can analyze a variety of files for you on behalf of the user. You will not be analyzing these files yourself.
-Your job is to format instructions that can be understood by the expert and pass them along with the file to be analyzed.
-If an exact file name is not provided, you will use the locate_file tool to find the file.
-You will not perform any prerequisite steps to analyze, modify, or prepare the file in any way. You are just the messenger.
-You will provide the information back to the user in a format that aligns with the instructions they provided.
+When asked about a file's contents, you will use the analyze_file tool to request an expert to analyze the file. You will provide the tool with detailed instructions on what information is being requested.
+Your instructions for the expert will be based on the user's query, which you will not modify or expand upon. The instructions must contain the same constraints as the user specified.
+You will not refer to the file or file extension in your instructions - you will refer to it as 'the data' only. The expert does not concern themselves with the file name or its extension.
+Use the locate_file tool to find the file if an exact file name is not provided. If a filename is provided, you will use it.
 
-# Rules for Analyzing Files
-## Creating Instructions
-You will pass the user's request directly along to the expert, only modifying it if you determine the expert needs more information to complete the task.
-You will not instruct the expert to perform any tasks other than retrieving the user's requested information. You will not ask the expert to provide any other information. 
-## Responses
-### CSV and XLSX Files
-The expert will provide you with the query they used to get results from the spreadsheet. Do not provide this query to the user, instead explain the process in a way that the user can understand.
+When you have the results from the expert, you will relay them back to the user. You will be detailed in your response and will avoid responding with 'Information extracted', 'Extracted 10 rows', etc. You will provide the user with the information they requested.
 """
     
     @ability_action(
@@ -64,7 +57,7 @@ The expert will provide you with the query they used to get results from the spr
     
     @ability_action(
         "analyze_file",
-        "Request an expert to look at a file and derive information from it",
+        "Request an expert to look at a file and derive information from it.",
         {
             "file_path":{
                 "type": "string",
@@ -99,16 +92,26 @@ The expert will provide you with the query they used to get results from the spr
         ext = os.path.splitext(file_path)[1].lower()
         
         if ext in [".pdf"]:
-            return handle_analyze_pdf(file_path, instructions)
+            answer = handle_analyze_pdf(file_path, instructions)
         elif ext in [".csv", ".xlsx"]:
-            return handle_analyze_spreadsheet(file_path, instructions)
+            answer =  handle_analyze_spreadsheet(file_path, instructions)
         elif ext in [".jpg", ".jpeg", ".png"]:
-            return handle_analyze_image(file_path, instructions)
+            answer =  handle_analyze_image(file_path, instructions)
         elif ext in [".json"]:
-            return handle_analyze_json(file_path, instructions)
+            answer =  handle_analyze_json(file_path, instructions)
         elif ext in [".yaml", ".yml"]:
-            return handle_analyze_yaml(file_path, instructions)
+            answer =  handle_analyze_yaml(file_path, instructions)
         elif ext in [".xml"]:
-            return handle_analyze_xml(file_path, instructions)
+            answer =  handle_analyze_xml(file_path, instructions)
         else:
             return "I'm sorry, I don't know how to analyze that file type. It's unsupported."
+
+        answer = f"""
+Expert analysis of the data:
+
+{answer}
+
+You must provide the user with this information.
+"""
+        
+        return answer
