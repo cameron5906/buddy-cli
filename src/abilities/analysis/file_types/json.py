@@ -1,3 +1,4 @@
+import json
 import pandas as pd
 from abilities.analysis.tiny_db import handle_analyze_structured_data
 from utils.shell_utils import print_fancy
@@ -16,8 +17,10 @@ def handle_analyze_json(file_path, instructions):
     """
     
     # Load file into a dataframe
-    df = pd.read_json(file_path)
+    with open(file_path, "r") as file:
+        data = json.load(file)
+        df = pd.json_normalize(data)
     
-    print_fancy(f"Analyzing {file_path}: {instructions}", italic=True, color="cyan")
+        print_fancy(f"Analyzing {file_path}: {instructions}", italic=True, color="cyan")
     
-    return handle_analyze_structured_data(df, instructions)
+        return handle_analyze_structured_data(df, instructions)
