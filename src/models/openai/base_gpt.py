@@ -45,8 +45,7 @@ class BaseGPT(BaseModel):
                     messages=messages,
                     tools=tools,
                     temperature=temperature,
-                    tool_choice="required" if require_tool_usage and tools is not None and len(tools) > 0 else None,
-                    parallel_tool_calls=False
+                    tool_choice="required" if require_tool_usage and tools is not None and len(tools) > 0 else None
                 )
             except openai.InternalServerError as internal_server_error:
                 if "The model produced invalid content" in internal_server_error.message:
