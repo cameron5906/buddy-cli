@@ -110,8 +110,8 @@ def find_models(provider: ModelProvider, vision_capability=None, min_context=Non
         if cls.provider.value == provider
         and (
             len(tags) == 0
-            or (tag_mode == TagSelectionMode.ALL and all(tag in cls.tags for tag in tags))
-            or (tag_mode == TagSelectionMode.ANY and any(tag in cls.tags for tag in tags))
+            or (tag_mode == TagSelectionMode.ALL and all(tag.value in cls.tags for tag in tags))
+            or (tag_mode == TagSelectionMode.ANY and any(tag.value in cls.tags for tag in tags))
         )
         and (
             vision_capability is None 
