@@ -11,7 +11,7 @@ from abilities.analysis.utils import is_poppler_installed, install_poppler
 from abilities.analysis.locate_file import handle_locate_file
 from utils.shell_utils import print_fancy
 
-@ability("analysis", "Analyze images, spreadsheets, and other files", {})
+@ability("analysis", "Analyze a variety of documents and images", {})
 class Analysis(BaseAbility):
 
     def enable(self, args=None):
