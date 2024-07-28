@@ -41,7 +41,7 @@ The following LLMs are supported through Buddy:
 Want to go even further than your own shell's capabilities? Well, Buddy is quite capable of performing more specialized tasks through a modular ability system. Abilities expand Buddy's toolset by enabling special prompt flows, including ones that use external tools to get the work done.
 
 - **🌍 Browsing:** Enable Buddy to utilize Chrome to search the web and interact with webpages for research tasks.
-- **🚧🔬 Analysis:** Give Buddy the ability to read and understand spreadsheets, PDFs, and images.
+- **🔬 Analysis:** Give Buddy the ability to read and understand CSV, XLSX, JSON, XML, YAML, and PDF documents as well as jpeg and png images
 - **🚧👀 Watching:** Let Buddy watch a stream of logs for you and only tell you about what you want to know.
 - 🚧**🧑‍💻 Web Development:** Buddy can help you reason about your React or Angular app
 - **🚧📃 Documentation:** Ask Buddy to write that README for you _(...like this one)_
