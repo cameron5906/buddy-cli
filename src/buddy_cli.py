@@ -2,6 +2,10 @@
 import sys
 import os
 
+import initialize_flows
+from flows import get_flow_name, create_flow
+from models import ModelTag
+
 # Add the current directory to the Python path to ensure modules can be found
 sys.path.append(os.path.dirname(__file__))
 
@@ -13,13 +17,16 @@ from models.base_model_factory import ModelFactory
 
 model_factory = ModelFactory()
 
+def handle_unknown_operation():
+    print("Usage: buddy <command>")
+    print("Type 'buddy info' for more information")
+    sys.exit(1)
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: buddy <command>")
-        print("Type 'buddy info' for more information")
-        sys.exit(1)
+        handle_unknown_operation()
 
+    suffix_str = " ".join(sys.argv[1:])
     command = sys.argv[1]
 
     # Installation as a shell alias
@@ -28,7 +35,7 @@ def main():
         sys.exit(0)
 
     # Buddy information and current configuration
-    if command == "info":
+    elif command == "info":
         display_info(sys.argv[2:])
         sys.exit(0)
         
@@ -43,39 +50,21 @@ def main():
         sys.exit(0)
     
     # Find a model to use for this command
-    model = model_factory.get_model(require_vision=False)
+    model = model_factory.get_model(require_vision=False, tags=[ModelTag.BALANCED])
     
-    # Collaborative educational flow
-    if command == "help":
-        if len(sys.argv) < 3:
-            print("Usage: buddy help <task>")
-            sys.exit(1)
-            
-        query = " ".join(sys.argv[2:])
-        model.execute_educational(query)
+    flow_name = get_flow_name(suffix_str)
+
+    if flow_name is None:
+        handle_unknown_operation()
     
-    # Supervised flow for non-read operations
-    elif command == "carefully":
-        if len(sys.argv) < 3:
-            print("Usage: buddy carefully <task>")
-            sys.exit(1)
-            
-        query = " ".join(sys.argv[2:])
-        model.execute_carefully(query)
-    
-    # Explanation of a command
-    elif command == "explain":
-        if len(sys.argv) < 3:
-            print("Usage: buddy explain <command>")
-            sys.exit(1)
-            
-        command_string = " ".join(sys.argv[2:])
-        model.explain(command_string)
-    
-    # Unsupervised flow
+    if flow_name != "__default":
+        flow_command_str = suffix_str[len(flow_name):].strip()
     else:
-        query = " ".join(sys.argv[1:])
-        model.execute_unsupervised(query)    
+        flow_command_str = suffix_str
+        
+    flow = create_flow(flow_name, model)
+    
+    flow.execute(flow_command_str)
 
 
 if __name__ == "__main__":
