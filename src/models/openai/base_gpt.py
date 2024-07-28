@@ -1,8 +1,8 @@
 import json
 from openai import OpenAI
+from openai.types.chat import ChatCompletion, ChatCompletionMessage
 import openai
 from models.base_model import BaseModel
-
 
 class BaseGPT(BaseModel):
     """
@@ -21,8 +21,8 @@ class BaseGPT(BaseModel):
         
         super().__init__()
         self.client = OpenAI(api_key=self.api_key)
-
-    def run_inference(self, messages, tools=None, temperature=0.1):
+        
+    def run_inference(self, messages, tools=None, temperature=0.1, require_tool_usage=False):
         """
         Method to run inference on a list of messages with a list of tools
         
@@ -30,6 +30,7 @@ class BaseGPT(BaseModel):
             messages (list): List of messages to run inference on
             tools (list): List of tools to use for inference
             temperature (float): The temperature for the model
+            require_tool_usage (bool): Whether to require tool usage
         """
         
         attempts = 0
@@ -44,6 +45,7 @@ class BaseGPT(BaseModel):
                     messages=messages,
                     tools=tools,
                     temperature=temperature,
+                    tool_choice="required" if require_tool_usage and tools is not None and len(tools) > 0 else None,
                     parallel_tool_calls=False
                 )
             except openai.InternalServerError as internal_server_error:
@@ -61,7 +63,7 @@ class BaseGPT(BaseModel):
         
         return response
     
-    def make_tool(self, tool_name, description, args={}, required=[], json_parameter_schema=None):
+    def make_tool(self, tool_name, description, args=None, required=None, json_parameter_schema=None):
         """
         Creates the structure for describing tools to the model.
         
@@ -101,7 +103,7 @@ class BaseGPT(BaseModel):
                 properties[param] = {"type": details}
                 if param in required:
                     properties[param]["description"] = f"{param} is required"
-
+        
         return {
             "type": "function",
             "function": {
@@ -134,22 +136,27 @@ class BaseGPT(BaseModel):
             "content": result
         }
     
-    def get_tool_call(self, tool_name, response):
+    def get_tool_call(self, tool_name, obj):
         """
         Parses tool call arguments for a given tool
         
         Args:
             tool_name (str): The name of the tool to get calls for
-            response (dict): The response from the model
+            obj (dict): The object to search for the tool call
             
         Returns:
             list: The call id, arguments and dictionary, or None if the tool call was not found
         """
 
-        choice = response.choices[0]
-        
-        if choice.finish_reason == "tool_calls":
-            for tool_call in choice.message.tool_calls:
+        if isinstance(obj, ChatCompletion):
+            message = obj.choices[0].message
+        elif isinstance(obj, ChatCompletionMessage):
+            message = obj
+        else:
+            return None, None, None
+
+        if message.tool_calls is not None:
+            for tool_call in message.tool_calls:
                 name = tool_call.function.name
                 
                 # Check if its a string
@@ -167,29 +174,6 @@ class BaseGPT(BaseModel):
                     return tool_call.id, args, tool_call
 
         return None, None, None
-
-    def make_ability_action_tools(self):
-        """
-        Method to create tools for the ability actions that are available to the model
-        """
-        
-        tools = []
-        
-        for action in self.ability_actions:
-            # Ability_actions store the name as {ability_name}_{action_name}, so we need to substring to get the actual action name
-            ability_name = action["name"].split("_")[0]
-            action_name = action["name"][len(ability_name) + 1:]
-            
-            tools.append(
-                self.make_tool(
-                    action_name,
-                    action["description"],
-                    action["argument_schema"],
-                    action["required_arguments"]
-                )
-            )
-            
-        return tools
 
     def summarize(self, content):
         """

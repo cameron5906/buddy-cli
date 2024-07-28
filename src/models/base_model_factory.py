@@ -1,4 +1,3 @@
-from enum import Enum
 import initialize_models
 import sys
 from models import TagSelectionMode, create_model, find_models
