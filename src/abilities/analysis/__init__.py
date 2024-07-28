@@ -11,10 +11,6 @@ from abilities.analysis.utils import is_poppler_installed, install_poppler
 from abilities.analysis.locate_file import handle_locate_file
 from utils.shell_utils import print_fancy
 
-ARGUMENTS = {"file_path": "string", "instructions": {"type": "string", "description": "Detailed instructions to pass to the analysis expert"}}
-REQUIRED_ARGUMENTS = ["file_path", "instructions"]
-
-
 @ability("analysis", "Analyze images, spreadsheets, and other files", {})
 class Analysis(BaseAbility):
 
